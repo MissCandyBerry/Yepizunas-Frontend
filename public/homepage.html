@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Michel Yepiz Nails Studio — Agenda tu cita en Navojoa, Sonora. Manicure, uñas acrílicas, gel y más." />
+  <title>Michel Yepiz Nails Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/modal.css" />
+</head>
+<body>
+
+  <!-- ════════════════════════════
+       TOP BAR
+  ════════════════════════════ -->
+  <div class="top-bar" role="banner">
+    <div class="top-bar__inner">
+      <a href="https://www.google.com/maps/place/C.+Alejo+Toledo+3144,+Ju%C3%A1rez,+85870+Navojoa,+Son./@27.0591903,-109.4481214,17z/data=!3m1!4b1!4m6!3m5!1s0x86b81b0c75c94173:0x13014c5008a8db77!8m2!3d27.0591903!4d-109.4455465!16s%2Fg%2F11t8h6l2l3?entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D" class="top-bar__link" target="_blank" rel="noopener noreferrer">Encuéntranos</a>
+      <span class="top-bar__address">C. Alejo Toledo 3144, Juárez</span>
+      <span class="top-bar__city">85870 Navojoa, Son</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       NAVIGATION
+  ════════════════════════════ -->
+  <header class="nav" id="nav" role="navigation" aria-label="Navegación principal">
+    <div class="nav__inner">
+
+      <a href="/" class="nav__brand" aria-label="Michel Yepiz Nails Studio — inicio">
+        Michel Yepiz Nails Studio
+      </a>
+
+      <nav>
+        <ul class="nav__links" role="list">
+          <li><a href="#servicios" class="nav__link">Servicios</a></li>
+          <li><a href="#cita" class="nav__link">Agenda tu cita</a></li>
+          <li><a href="#horarios" class="nav__link">Horarios</a></li>
+        </ul>
+      </nav>
+
+      <a href="#cuenta" class="nav__cta" aria-label="Mi cuenta">
+        <!-- person icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Mi cuenta
+      </a>
+
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ════════════════════════════
+         HERO
+    ════════════════════════════ -->
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="hero__bg" aria-hidden="true"></div>
+      <div class="hero__line" aria-hidden="true"></div>
+
+      <div class="hero__content">
+        <p class="hero__eyebrow">Ven a consentir tus manos</p>
+        <h1 class="hero__title" id="hero-title">
+          Agenda tu cita<br>hoy mismo
+        </h1>
+        <a href="#cita" class="hero__cta" id="cita">
+          Agendar cita
+          <span class="hero__cta-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════
+         SERVICIOS
+    ════════════════════════════ -->
+    <section class="services" id="servicios" aria-labelledby="servicios-title">
+      <div class="services__header">
+        <div>
+          <p class="services__label">Lo que ofrecemos</p>
+          <h2 class="services__title" id="servicios-title">Nuestros servicios</h2>
+        </div>
+      </div>
+
+      <div class="services__grid">
+
+        <article class="service-card">
+          <p class="service-card__num">01</p>
+          <h3 class="service-card__name">Manicure Clásico</h3>
+          <p class="service-card__desc">
+            Limpieza, forma y esmaltado tradicional para unas manos perfectas y cuidadas.
+          </p>
+        </article>
+
+        <article class="service-card">
+          <p class="service-card__num">02</p>
+          <h3 class="service-card__name">Uñas Acrílicas</h3>
+          <p class="service-card__desc">
+            Extensiones de alta durabilidad con diseños personalizados adaptados a tu estilo.
+          </p>
+        </article>
+
+        <article class="service-card">
+          <p class="service-card__num">03</p>
+          <h3 class="service-card__name">Gel Profesional</h3>
+          <p class="service-card__desc">
+            Acabado brillante y duradero con fórmula de gel de larga duración.
+          </p>
+        </article>
+
+        <article class="service-card">
+          <p class="service-card__num">04</p>
+          <h3 class="service-card__name">Nail Art</h3>
+          <p class="service-card__desc">
+            Diseños artísticos únicos: desde minimalistas hasta elaborados con piedras y cromados.
+          </p>
+        </article>
+
+        <article class="service-card">
+          <p class="service-card__num">05</p>
+          <h3 class="service-card__name">Pedicure Spa</h3>
+          <p class="service-card__desc">
+            Tratamiento completo de pies con exfoliación, hidratación y esmaltado.
+          </p>
+        </article>
+
+        <article class="service-card">
+          <p class="service-card__num">06</p>
+          <h3 class="service-card__name">Retiro y Relleno</h3>
+          <p class="service-card__desc">
+            Mantenimiento y renovación para prolongar la vida de tus uñas con acabado impecable.
+          </p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ════════════════════════════
+         HORARIOS
+    ════════════════════════════ -->
+    <section class="hours" id="horarios" aria-labelledby="horarios-title">
+      <div class="hours__inner">
+
+        <div>
+          <p class="hours__label">Visítanos</p>
+          <h2 class="hours__title" id="horarios-title">
+            Horarios de<br>atención
+          </h2>
+
+          <table class="hours__table" aria-label="Horarios de atención">
+            <tbody>
+              <tr>
+                <td>Lunes – Viernes</td>
+                <td>9:00 am – 7:00 pm</td>
+              </tr>
+              <tr>
+                <td>Sábado</td>
+                <td>9:00 am – 5:00 pm</td>
+              </tr>
+              <tr>
+                <td>Domingo</td>
+                <td>Cita previa</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <a href="#cita" class="hours__cta">
+            Agendar cita <span aria-hidden="true">→</span>
+          </a>
+        </div>
+
+        <div class="hours__map" id="contacto" aria-label="Mapa de ubicación">
+          <span class="hours__map-icon" aria-hidden="true">📍</span>
+          <span>C. Alejo Toledo 3144, Juárez</span>
+          <span>Navojoa, Sonora 85870</span>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════════════════════
+       FOOTER
+  ════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer__inner">
+
+      <div>
+        <p class="footer__brand">Michel Yepiz Nails Studio</p>
+        <p class="footer__tagline">
+          Tu destino de belleza en Navojoa, Sonora. Uñas perfectas, atención personalizada.
+        </p>
+      </div>
+
+      <nav aria-label="Navegación del footer">
+        <p class="footer__heading">Navegación</p>
+        <ul class="footer__list" role="list">
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#cita">Agenda tu cita</a></li>
+          <li><a href="#horarios">Horarios</a></li>
+          <li><a href="#cuenta">Mi cuenta</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <p class="footer__heading">Contacto</p>
+        <ul class="footer__list" role="list">
+          <li><a href="tel:+526441234567">+52 644 123 4567</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#4b2324272a0b262228232e27322e3b223165282426"><span class="__cf_email__" data-cfemail="c4acaba8a584a9ada7aca1a8bda1b4adbeeaa7aba9">[email&#160;protected]</span></a></li>
+          <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer">@michelyepiznails</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 Michel Yepiz Nails Studio. Todos los derechos reservados.</span>
+      <span>Navojoa, Sonora, México</span>
+    </div>
+  </footer>
+
+  <!-- ════════════════════════════
+       AUTH MODAL
+  ════════════════════════════ -->
+  <div class="modal-overlay" id="authModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <button class="modal__close" id="modalClose" aria-label="Cerrar">&times;</button>
+
+      <!-- ICONO -->
+      <div class="modal__icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+
+      <!-- ── PANEL: INICIAR SESIÓN ── -->
+      <div class="modal__panel active" id="panelLogin">
+        <h2 class="modal__title" id="modalTitle">Iniciar Sesion</h2>
+        <p class="modal__subtitle">Ingresa tus credenciales para continuar</p>
+
+        <div class="modal__field">
+          <label class="modal__label" for="loginEmail">Correo Electronico</label>
+          <input class="modal__input" type="email" id="loginEmail" placeholder="correo@ejemplo.com" autocomplete="email" />
+        </div>
+
+        <div class="modal__field">
+          <label class="modal__label" for="loginPass">Contrasena</label>
+          <div class="modal__input-wrap">
+            <input class="modal__input modal__input--password" type="password" id="loginPass" placeholder="Minimo 8 caracteres" autocomplete="current-password" />
+            <button class="modal__eye" type="button" aria-label="Mostrar contraseña" data-target="loginPass">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="modal__btn" type="button">Iniciar Sesion</button>
+
+        <p class="modal__footer">
+          No tienes cuenta?
+          <button class="modal__switch" id="goRegister" type="button">Registrate</button>
+        </p>
+      </div>
+
+      <!-- ── PANEL: CREAR CUENTA ── -->
+      <div class="modal__panel" id="panelRegister">
+        <h2 class="modal__title">Crear Cuenta</h2>
+        <p class="modal__subtitle">Completa el formulario para registrarte</p>
+
+        <div class="modal__field">
+          <label class="modal__label" for="regName">Nombre Completo</label>
+          <input class="modal__input" type="text" id="regName" placeholder="Tu nombre" autocomplete="name" />
+        </div>
+
+        <div class="modal__field">
+          <label class="modal__label" for="regEmail">Correo Electronico</label>
+          <input class="modal__input" type="email" id="regEmail" placeholder="correo@ejemplo.com" autocomplete="email" />
+        </div>
+
+        <div class="modal__field">
+          <label class="modal__label" for="regPass">Contrasena</label>
+          <div class="modal__input-wrap">
+            <input class="modal__input modal__input--password" type="password" id="regPass" placeholder="Minimo 8 caracteres" autocomplete="new-password" />
+            <button class="modal__eye" type="button" aria-label="Mostrar contraseña" data-target="regPass">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal__field">
+          <label class="modal__label" for="regPassConfirm">Confirmar Contrasena</label>
+          <div class="modal__input-wrap">
+            <input class="modal__input modal__input--password" type="password" id="regPassConfirm" placeholder="Repite tu contrasena" autocomplete="new-password" />
+            <button class="modal__eye" type="button" aria-label="Mostrar contraseña" data-target="regPassConfirm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="modal__btn" type="button">Registrarse</button>
+
+        <p class="modal__footer">
+          Ya tienes cuenta?
+          <button class="modal__switch" id="goLogin" type="button">Inicia Sesion</button>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="scripts/ui/nav.js" defer></script>
+  <script src="scripts/ui/modal.js" defer></script>
+
+</body>
+</html>
