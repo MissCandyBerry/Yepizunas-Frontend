@@ -11,11 +11,12 @@ export async function loginUsuario(email, password) {
   if (!res.ok) throw new Error(data.message || 'Error al iniciar sesión');
 
   localStorage.setItem('token', data.token);
-    if (data.datos?.nombre) {
+  localStorage.setItem('tipo', data.tipo);
+  if (data.datos?.nombre) {
       localStorage.setItem('nombre', data.datos.nombre);
-    } 
-  return data;
-}
+  }
+    return data;
+  }
 
 export async function registrarUsuario(nombre, email, password) {
   const res = await fetch(`${API_BASE}/api/Usuarios/register`, {
