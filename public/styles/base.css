@@ -336,6 +336,11 @@ ul {
   border-top: 1px solid #e8e4e0;
 }
 
+.services__header {
+  padding: 0 2.5rem;
+  margin-bottom: 3rem;
+}
+
 .services__label {
   font-size: 0.65rem;
   letter-spacing: 0.25em;
@@ -355,6 +360,7 @@ ul {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   border-left: 1px solid #e8e4e0;
+  margin: 0 2.5rem;
 }
 
 .service-card {
@@ -490,12 +496,27 @@ ul {
   font-size: 2rem;
   opacity: 0.5;
 }
+.hours__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  padding: 0 2.5rem;
+}
+
 
 /* ── Footer ── */
 .footer {
   background-color: #ffffff;
   border-top: 1px solid #e8e4e0;
   padding: 4rem 0 2.5rem;
+}
+
+.footer__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3rem;
+  padding: 0 2.5rem;
+  margin-bottom: 2.5rem;
 }
 
 .footer__brand {
@@ -594,6 +615,7 @@ ul {
 
   .services__grid {
     grid-template-columns: 1fr;
+    margin: 0 1.25rem;
   }
 
   .services__header {
@@ -602,10 +624,12 @@ ul {
     padding: 0 1.25rem;
   }
 
-  .hours__inner {
-    padding: 0 1.25rem;
-  }
-
+.hours__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  padding: 0 2.5rem;
+}
   .footer__inner {
     grid-template-columns: 1fr;
     gap: 2.5rem;
