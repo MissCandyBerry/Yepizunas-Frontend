@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles/booking.css" />
+</head>
+<script type="module" src="scripts/ui/booking.js"></script>
+<body>
+
+<div class="booking-overlay" id="bookingOverlay" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+  <div class="booking-modal">
+
+    <!-- Close -->
+    <button class="booking-modal__close" id="bookingClose" aria-label="Cerrar">&times;</button>
+
+    <!-- ── Header ── -->
+    <div class="booking-modal__header">
+      <p class="booking-modal__eyebrow">Michel Yepiz Nails Studio</p>
+      <h2 class="booking-modal__title" id="bookingTitle">
+        Agenda tu<br>cita
+      </h2>
+    </div>
+
+    <!-- ── Steps Indicator ── -->
+    <div class="booking-steps" role="list">
+      <div class="booking-step active" role="listitem">
+        <div class="booking-step__num"><span>1</span></div>
+        <span class="booking-step__label">Servicio</span>
+      </div>
+      <div class="booking-step" role="listitem">
+        <div class="booking-step__num"><span>2</span></div>
+        <span class="booking-step__label">Fecha y hora</span>
+      </div>
+      <div class="booking-step" role="listitem">
+        <div class="booking-step__num"><span>3</span></div>
+        <span class="booking-step__label">Confirmar</span>
+      </div>
+    </div>
+
+    <!-- ── Main Content (hides on success) ── -->
+    <div class="booking-main">
+
+      <!-- ══ STEP 1: Service Selection ══ -->
+      <div class="booking-panel active" id="bookingStep1">
+        <p class="booking-panel__lead">¿Qué servicio deseas agendar?</p>
+        <div class="services-select-grid" id="servicesGrid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- ══ STEP 2: Date & Time ══ -->
+      <div class="booking-panel" id="bookingStep2">
+        <div class="calendar-wrapper">
+
+          <!-- Calendar -->
+          <div class="cal-pane">
+            <div class="cal-header">
+              <button class="cal-nav" id="calPrev" aria-label="Mes anterior">‹</button>
+              <span class="cal-month" id="calMonthLabel"></span>
+              <button class="cal-nav" id="calNext" aria-label="Mes siguiente">›</button>
+            </div>
+
+            <div class="cal-grid" role="grid">
+              <!-- Weekday headers -->
+              <div class="cal-weekdays" role="row">
+                <div class="cal-weekday" role="columnheader">Do</div>
+                <div class="cal-weekday" role="columnheader">Lu</div>
+                <div class="cal-weekday" role="columnheader">Ma</div>
+                <div class="cal-weekday" role="columnheader">Mi</div>
+                <div class="cal-weekday" role="columnheader">Ju</div>
+                <div class="cal-weekday" role="columnheader">Vi</div>
+                <div class="cal-weekday" role="columnheader">Sá</div>
+              </div>
+              <!-- Days rendered by JS -->
+              <div class="cal-days" id="calDaysGrid" role="rowgroup"></div>
+            </div>
+
+            <!-- Legend -->
+            <div class="cal-legend" aria-label="Leyenda de disponibilidad">
+              <div class="cal-legend-item">
+                <span class="cal-legend-dot cal-legend-dot--available"></span>
+                Disponible
+              </div>
+              <div class="cal-legend-item">
+                <span class="cal-legend-dot cal-legend-dot--partial"></span>
+                Pocos lugares
+              </div>
+              <div class="cal-legend-item">
+                <span class="cal-legend-dot cal-legend-dot--full"></span>
+                Sin lugar
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="calendar-divider" aria-hidden="true"></div>
+
+          <!-- Time Slots -->
+          <div class="time-pane">
+            <p class="time-pane__label">Horario</p>
+            <div id="timePaneContent">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ STEP 3: Confirm ══ -->
+      <div class="booking-panel" id="bookingStep3">
+        <p class="booking-panel__lead">Revisa los detalles de tu cita antes de confirmar.</p>
+        <div class="booking-summary" id="bookingSummary">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div><!-- /.booking-main -->
+
+    <!-- ── Success State ── -->
+    <div class="booking-success" id="bookingSuccess">
+      <div class="booking-success__icon">✨</div>
+      <h3 class="booking-success__title">¡Cita agendada!</h3>
+      <p class="booking-success__sub">
+        Hemos registrado tu cita exitosamente. Te esperamos puntual. ¡Nos vemos pronto!
+      </p>
+      <button class="booking-btn booking-btn--primary" onclick="document.getElementById('bookingOverlay').classList.remove('active'); document.body.style.overflow='';">
+        Cerrar
+      </button>
+    </div>
+
+    <!-- ── Footer / Navigation ── -->
+    <div class="booking-modal__footer">
+      <!-- Error message -->
+      <p id="bookingError" style="font-size:0.75rem; color:#d97070; display:none; flex:1;"></p>
+
+      <div style="display:flex; gap:0.75rem; margin-left:auto;">
+        <button class="booking-btn booking-btn--ghost" id="bookingBack" disabled>
+          ← Atrás
+        </button>
+        <button class="booking-btn booking-btn--primary" id="bookingNext">
+          Siguiente <span class="booking-btn__arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
