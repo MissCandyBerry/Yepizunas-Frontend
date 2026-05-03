@@ -1,16 +1,16 @@
 // ──────────────────────────────────────
-//  booking.js — UI only, sin lógica de negocio
-//  Solo navegación entre pasos + renders estáticos
+//  booking.js — Página dedicada de agendado
+//  El overlay ya viene .active desde el HTML
 // ──────────────────────────────────────
 
 // ── Servicios (catálogo estático) ──────
 const SERVICES = [
-  { id: 1, name: 'Manicure Clásico',  duration: '45 min' },
-  { id: 2, name: 'Uñas Acrílicas',    duration: '90 min' },
-  { id: 3, name: 'Gel Profesional',   duration: '60 min' },
-  { id: 4, name: 'Nail Art',          duration: '75 min' },
-  { id: 5, name: 'Pedicure Spa',      duration: '60 min' },
-  { id: 6, name: 'Retiro y Relleno',  duration: '50 min' },
+  { id: 1, name: 'Manicure Clásico',  duration: '1 hora' },
+  { id: 2, name: 'Uñas Acrílicas',    duration: '1 hora' },
+  { id: 3, name: 'Gel Profesional',   duration: '1 hora' },
+  { id: 4, name: 'Nail Art',          duration: '1 hora' },
+  { id: 5, name: 'Pedicure Spa',      duration: '1 hora' },
+  { id: 6, name: 'Retiro y Relleno',  duration: '1 hora' },
 ];
 
 // ── Horarios mock (UI demo) ────────────
@@ -43,32 +43,24 @@ const btnBack   = document.getElementById('bookingBack');
 const panels    = document.querySelectorAll('.booking-panel');
 const steps     = document.querySelectorAll('.booking-step');
 const successEl = document.getElementById('bookingSuccess');
-const mainEl    = overlay?.querySelector('.booking-main');
-const footerEl  = overlay?.querySelector('.booking-modal__footer');
+const mainEl    = document.querySelector('.booking-main');
+const footerEl  = document.querySelector('.booking-modal__footer');
 
-// ── Abrir / Cerrar ─────────────────────
-function openBooking() {
-  ui.step = 1; ui.service = null; ui.date = null; ui.time = null;
-  successEl?.classList.remove('active');
-  if (mainEl)   mainEl.style.display   = '';
-  if (footerEl) footerEl.style.display = '';
-  renderStep(1);
-  overlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
+// ── Cerrar → regresa al homepage ───────
 function closeBooking() {
-  overlay.classList.remove('active');
-  document.body.style.overflow = '';
+  window.location.href = 'homepage.html';
 }
-
-document.querySelectorAll('.hero__cta, a[href="#cita"], .hours__cta').forEach(el => {
-  el.addEventListener('click', e => { e.preventDefault(); openBooking(); });
-});
 
 closeBtn?.addEventListener('click', closeBooking);
-overlay?.addEventListener('click', e => { if (e.target === overlay) closeBooking(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBooking(); });
+
+// Click en el fondo oscuro cierra también
+overlay?.addEventListener('click', e => {
+  if (e.target === overlay) closeBooking();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeBooking();
+});
 
 // ── Navegación entre pasos ─────────────
 btnNext?.addEventListener('click', () => {
@@ -79,7 +71,9 @@ btnNext?.addEventListener('click', () => {
   goToStep(ui.step + 1);
 });
 
-btnBack?.addEventListener('click', () => { if (ui.step > 1) goToStep(ui.step - 1); });
+btnBack?.addEventListener('click', () => {
+  if (ui.step > 1) goToStep(ui.step - 1);
+});
 
 function goToStep(n) {
   ui.step = n;
@@ -90,8 +84,8 @@ function renderStep(n) {
   panels.forEach((p, i) => p.classList.toggle('active', i + 1 === n));
   steps.forEach((s, i) => {
     s.classList.remove('active', 'completed');
-    if (i + 1 === n)      s.classList.add('active');
-    else if (i + 1 < n)   s.classList.add('completed');
+    if (i + 1 === n)    s.classList.add('active');
+    else if (i + 1 < n) s.classList.add('completed');
   });
   btnBack.disabled = n === 1;
   btnNext.innerHTML = n === 3
@@ -137,8 +131,6 @@ function renderServices() {
 const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-// Disponibilidad mock visual por día de la semana
-// 0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb
 const DOW_STATUS = ['closed','available','available','partial','available','available','partial'];
 
 let calYear, calMonth;
@@ -150,7 +142,6 @@ function renderCalendar() {
   buildMonth();
   renderTimeSlots();
 
-  // Clonar botones para evitar listeners duplicados al volver al paso 2
   ['calPrev', 'calNext'].forEach(id => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -179,9 +170,9 @@ function buildMonth() {
   let html = Array(first).fill('<div class="cal-day cal-day--empty"></div>').join('');
 
   for (let d = 1; d <= days; d++) {
-    const date   = new Date(calYear, calMonth, d);
-    const dow    = date.getDay();
-    const isPast = date < today;
+    const date    = new Date(calYear, calMonth, d);
+    const dow     = date.getDay();
+    const isPast  = date < today;
     const isToday = date.getTime() === today.getTime();
     const status  = DOW_STATUS[dow];
     const key     = fmtKey(date);
@@ -277,11 +268,11 @@ function renderSummary() {
       <span class="booking-summary__val">${ui.time} hrs</span>
     </div>
     <div class="booking-summary__note">
-      📌 Por favor llega 5 minutos antes de tu cita. En caso de cancelación, avísanos con al menos 2 horas de anticipación.
+      Revise con atención su cita, una vez agendada no podrá ser modificada.
     </div>`;
 }
 
-// ── Éxito (mock visual) ────────────────
+// ── Éxito ──────────────────────────────
 function showSuccess() {
   if (mainEl)   mainEl.style.display   = 'none';
   if (footerEl) footerEl.style.display = 'none';
@@ -306,3 +297,8 @@ function clearError() {
   const el = document.getElementById('bookingError');
   if (el) { el.textContent = ''; el.style.display = 'none'; }
 }
+
+// ── Inicializar al cargar ──────────────
+// El overlay ya tiene clase .active en el HTML,
+// solo necesitamos renderizar el paso 1
+renderStep(1);

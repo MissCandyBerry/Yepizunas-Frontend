@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="styles/booking.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda tu cita — Michel Yepiz Nails Studio</title>
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/booking.css" />
 </head>
-<script type="module" src="scripts/ui/booking.js"></script>
 <body>
 
-<div class="booking-overlay" id="bookingOverlay" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+<div class="booking-overlay active" id="bookingOverlay" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
   <div class="booking-modal">
 
     <!-- Close -->
@@ -63,7 +63,6 @@
             </div>
 
             <div class="cal-grid" role="grid">
-              <!-- Weekday headers -->
               <div class="cal-weekdays" role="row">
                 <div class="cal-weekday" role="columnheader">Do</div>
                 <div class="cal-weekday" role="columnheader">Lu</div>
@@ -73,25 +72,10 @@
                 <div class="cal-weekday" role="columnheader">Vi</div>
                 <div class="cal-weekday" role="columnheader">Sá</div>
               </div>
-              <!-- Days rendered by JS -->
               <div class="cal-days" id="calDaysGrid" role="rowgroup"></div>
             </div>
 
-            <!-- Legend -->
-            <div class="cal-legend" aria-label="Leyenda de disponibilidad">
-              <div class="cal-legend-item">
-                <span class="cal-legend-dot cal-legend-dot--available"></span>
-                Disponible
-              </div>
-              <div class="cal-legend-item">
-                <span class="cal-legend-dot cal-legend-dot--partial"></span>
-                Pocos lugares
-              </div>
-              <div class="cal-legend-item">
-                <span class="cal-legend-dot cal-legend-dot--full"></span>
-                Sin lugar
-              </div>
-            </div>
+
           </div>
 
           <!-- Divider -->
@@ -120,19 +104,18 @@
 
     <!-- ── Success State ── -->
     <div class="booking-success" id="bookingSuccess">
-      <div class="booking-success__icon">✨</div>
+      <div class="booking-success__icon">✦</div>
       <h3 class="booking-success__title">¡Cita agendada!</h3>
       <p class="booking-success__sub">
         Hemos registrado tu cita exitosamente. Te esperamos puntual. ¡Nos vemos pronto!
       </p>
-      <button class="booking-btn booking-btn--primary" onclick="document.getElementById('bookingOverlay').classList.remove('active'); document.body.style.overflow='';">
-        Cerrar
-      </button>
+      <a href="homepage.html" class="booking-btn booking-btn--primary">
+        Volver al inicio
+      </a>
     </div>
 
     <!-- ── Footer / Navigation ── -->
     <div class="booking-modal__footer">
-      <!-- Error message -->
       <p id="bookingError" style="font-size:0.75rem; color:#d97070; display:none; flex:1;"></p>
 
       <div style="display:flex; gap:0.75rem; margin-left:auto;">
@@ -147,5 +130,9 @@
 
   </div>
 </div>
+
+<!-- ✅ Script AL FINAL del body, no en el head -->
+<script type="module" src="scripts/api/services/booking.js"></script>
+
 </body>
 </html>

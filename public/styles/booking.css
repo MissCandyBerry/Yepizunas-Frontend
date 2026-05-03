@@ -7,7 +7,7 @@
 .booking-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(10, 10, 10, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 900;
@@ -37,6 +37,8 @@
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
+  /* Línea dorada superior — igual que los cards de servicios */
+  border-top: 2px solid var(--color-accent);
 }
 
 .booking-overlay.active .booking-modal {
@@ -46,7 +48,7 @@
 /* Custom scrollbar */
 .booking-modal::-webkit-scrollbar { width: 4px; }
 .booking-modal::-webkit-scrollbar-track { background: transparent; }
-.booking-modal::-webkit-scrollbar-thumb { background: #d5d0cb; }
+.booking-modal::-webkit-scrollbar-thumb { background: var(--color-accent); opacity: 0.4; }
 
 /* ── Close Button ── */
 .booking-modal__close {
@@ -63,7 +65,7 @@
   z-index: 10;
   transition: color var(--transition);
 }
-.booking-modal__close:hover { color: var(--color-black); }
+.booking-modal__close:hover { color: var(--color-accent); }
 
 /* ── Header ── */
 .booking-modal__header {
@@ -118,7 +120,7 @@
 }
 
 .booking-step.completed:not(:last-child)::after {
-  background: var(--color-black);
+  background: var(--color-accent);
 }
 
 .booking-step__num {
@@ -137,14 +139,14 @@
 }
 
 .booking-step.active .booking-step__num {
-  border-color: var(--color-black);
-  background: var(--color-black);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
   color: #ffffff;
 }
 
 .booking-step.completed .booking-step__num {
-  border-color: var(--color-black);
-  background: var(--color-black);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
   color: #ffffff;
 }
 
@@ -165,7 +167,10 @@
   transition: color 0.3s ease;
 }
 
-.booking-step.active .booking-step__label,
+.booking-step.active .booking-step__label {
+  color: var(--color-accent);
+}
+
 .booking-step.completed .booking-step__label {
   color: var(--color-black);
 }
@@ -207,8 +212,27 @@
   border-bottom: 1px solid #e8e4e0;
   cursor: pointer;
   position: relative;
+  overflow: hidden;
   transition: background-color var(--transition);
   user-select: none;
+}
+
+/* Línea dorada inferior al hover — igual que .service-card en base.css */
+.service-option::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition);
+}
+
+.service-option:hover::before {
+  transform: scaleX(1);
 }
 
 .service-option:nth-child(3n) {
@@ -227,10 +251,14 @@
   background: var(--color-black);
 }
 
+.service-option.selected::before {
+  background-color: var(--color-accent);
+  transform: scaleX(1);
+}
+
 .service-option.selected .service-option__num,
-.service-option.selected .service-option__name,
 .service-option.selected .service-option__duration {
-  color: rgba(255,255,255,0.6);
+  color: rgba(200, 169, 138, 0.7);
 }
 
 .service-option.selected .service-option__name {
@@ -251,8 +279,8 @@
 }
 
 .service-option.selected .service-option__check {
-  border-color: rgba(255,255,255,0.4);
-  background: rgba(255,255,255,0.15);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
 }
 
 .service-option__check-icon {
@@ -295,7 +323,7 @@
   display: grid;
   grid-template-columns: 1fr 1px 1fr;
   gap: 0;
-  min-height: 380px;
+  min-height: 340px;
 }
 
 .calendar-divider {
@@ -331,8 +359,8 @@
 }
 
 .cal-nav:hover {
-  border-color: var(--color-black);
-  color: var(--color-black);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .cal-month {
@@ -359,7 +387,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-accent);
   padding: 0.4rem 0;
 }
 
@@ -384,7 +412,8 @@
 }
 
 .cal-day:hover:not(.cal-day--empty):not(.cal-day--past):not(.cal-day--closed) {
-  border-color: var(--color-black);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .cal-day--empty {
@@ -402,84 +431,41 @@
   text-decoration: line-through;
 }
 
-/* Availability dot */
-.cal-day--available::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #7ab87a;
-}
-
-.cal-day--partial::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-accent);
-}
-
+/* Disponibilidad: todos los dots en dorado */
+.cal-day--available::after,
+.cal-day--partial::after,
 .cal-day--full::after {
   content: '';
   position: absolute;
-  bottom: 4px;
+  bottom: 3px;
   left: 50%;
   transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
-  background: #d97070;
+  background: var(--color-accent);
+  opacity: 0.5;
 }
 
 .cal-day--selected {
   background: var(--color-black);
-  color: #ffffff;
+  color: #ffffff !important;
   border-color: var(--color-black);
 }
 
 .cal-day--selected::after {
-  background: rgba(255,255,255,0.5) !important;
+  background: rgba(200, 169, 138, 0.6) !important;
+  opacity: 1 !important;
 }
 
 .cal-day--today {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-accent);
 }
 
-/* Legend */
-.cal-legend {
-  display: flex;
-  gap: 1.25rem;
-  margin-top: 1.25rem;
-  flex-wrap: wrap;
+.cal-day--today.cal-day--selected {
+  color: #ffffff !important;
 }
-
-.cal-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  color: var(--color-muted);
-}
-
-.cal-legend-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.cal-legend-dot--available { background: #7ab87a; }
-.cal-legend-dot--partial { background: var(--color-accent); }
-.cal-legend-dot--full { background: #d97070; }
 
 /* Time slots pane */
 .time-pane {
@@ -491,7 +477,7 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-accent);
   margin-bottom: 0.75rem;
 }
 
@@ -546,8 +532,9 @@
 }
 
 .time-slot:hover:not(.time-slot--busy) {
-  border-color: var(--color-black);
-  background: #f5f3f1;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(200, 169, 138, 0.05);
 }
 
 .time-slot.selected {
@@ -563,7 +550,7 @@
   text-decoration: line-through;
 }
 
-/* Loading skeleton for time slots */
+/* Loading skeleton */
 .time-slot--loading {
   background: linear-gradient(90deg, #f0ede9 25%, #e8e4e0 50%, #f0ede9 75%);
   background-size: 200% 100%;
@@ -601,7 +588,7 @@
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-accent);
 }
 
 .booking-summary__val {
@@ -615,7 +602,7 @@
 .booking-summary__note {
   margin-top: 1.75rem;
   padding: 1.25rem;
-  background: #f5f3f1;
+  background: #faf9f8;
   border-left: 2px solid var(--color-accent);
   font-size: 0.75rem;
   line-height: 1.65;
@@ -646,6 +633,7 @@
   border: none;
   cursor: pointer;
   transition: all var(--transition);
+  text-decoration: none;
 }
 
 .booking-btn--primary {
@@ -654,7 +642,8 @@
 }
 
 .booking-btn--primary:hover {
-  background: #2a2a2a;
+  background: var(--color-accent);
+  color: var(--color-black);
 }
 
 .booking-btn--primary:disabled {
@@ -669,8 +658,8 @@
 }
 
 .booking-btn--ghost:hover {
-  border-color: var(--color-black);
-  color: var(--color-black);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .booking-btn--ghost:disabled {
