@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Michel Yepiz Nails Studio — Reseñas de nuestras clientas." />
+  <title>Reseñas — Michel Yepiz Nails Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/reviews.css" />
+</head>
+<body>
+
+  <!-- ════════════════════════════
+       TOP BAR
+  ════════════════════════════ -->
+  <div class="top-bar" role="banner">
+    <div class="top-bar__inner">
+      <a href="https://www.google.com/maps/place/C.+Alejo+Toledo+3144" class="top-bar__link"
+         target="_blank" rel="noopener noreferrer">Encuéntranos</a>
+      <span class="top-bar__address">C. Alejo Toledo 3144, Juárez</span>
+      <span class="top-bar__city">85870 Navojoa, Son</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       NAVIGATION
+  ════════════════════════════ -->
+  <header class="nav" id="nav" role="navigation" aria-label="Navegación principal">
+    <div class="nav__inner">
+      <a href="homepage.html" class="nav__brand" aria-label="Michel Yepiz Nails Studio — inicio">
+        Michel Yepiz Nails Studio
+      </a>
+      <nav>
+        <ul class="nav__links" role="list">
+          <li><a href="homepage.html#servicios" class="nav__link">Servicios</a></li>
+          <li><a href="Booking.html" class="nav__link">Agenda tu cita</a></li>
+          <li><a href="homepage.html#horarios" class="nav__link">Horarios</a></li>
+          <li><a href="reviews.html" class="nav__link nav__link--active">Reseñas</a></li>
+        </ul>
+      </nav>
+      <a href="homepage.html#cuenta" class="nav__cta" aria-label="Mi cuenta">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Mi cuenta
+      </a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ════════════════════════════
+         HERO DE SECCIÓN
+    ════════════════════════════ -->
+    <section class="reviews-hero" aria-labelledby="reviews-hero-title">
+      <div class="reviews-hero__bg" aria-hidden="true"></div>
+      <div class="reviews-hero__content">
+        <p class="reviews-hero__eyebrow">Lo que dicen de nosotros</p>
+        <h1 class="reviews-hero__title" id="reviews-hero-title">
+          Reseñas de<br>nuestras clientas
+        </h1>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════
+         ESTADÍSTICAS
+    ════════════════════════════ -->
+    <section class="reviews-stats" aria-label="Estadísticas de reseñas">
+      <div class="reviews-stats__inner">
+
+        <div class="reviews-stat">
+          <span class="reviews-stat__num" id="statTotal">0</span>
+          <span class="reviews-stat__label">Reseñas totales</span>
+        </div>
+
+        <div class="reviews-stat reviews-stat--center">
+          <div class="reviews-stat__stars" aria-label="Calificación promedio" id="statStars">
+            <span class="star-icon">★</span>
+            <span class="star-icon">★</span>
+            <span class="star-icon">★</span>
+            <span class="star-icon">★</span>
+            <span class="star-icon star-icon--empty">★</span>
+          </div>
+          <span class="reviews-stat__num reviews-stat__num--avg" id="statAvg">—</span>
+          <span class="reviews-stat__label">Calificación promedio</span>
+        </div>
+
+        <div class="reviews-stat">
+          <span class="reviews-stat__num" id="statFive">0</span>
+          <span class="reviews-stat__label">Reseñas de 5 estrellas</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ════════════════════════════
+         ESCRIBIR RESEÑA
+    ════════════════════════════ -->
+    <section class="review-form-section" id="escribir" aria-labelledby="form-title">
+      <div class="review-form-section__inner">
+
+        <div class="review-form-section__header">
+          <p class="review-form-section__label">Comparte tu experiencia</p>
+          <h2 class="review-form-section__title" id="form-title">
+            Deja tu reseña
+          </h2>
+        </div>
+
+        <form class="review-form" id="reviewForm" novalidate>
+
+          <div class="review-form__row">
+            <div class="review-form__field">
+              <label class="review-form__label" for="reviewName">Nombre</label>
+              <input class="review-form__input" type="text" id="reviewName"
+                     placeholder="Tu nombre" maxlength="80" autocomplete="name" />
+            </div>
+            <div class="review-form__field">
+              <label class="review-form__label" for="reviewService">Servicio</label>
+              <select class="review-form__input review-form__select" id="reviewService">
+                <option value="" disabled selected>Selecciona un servicio</option>
+                <option value="Manicure Clásico">Manicure Clásico</option>
+                <option value="Uñas Acrílicas">Uñas Acrílicas</option>
+                <option value="Gel Profesional">Gel Profesional</option>
+                <option value="Nail Art">Nail Art</option>
+                <option value="Pedicure Spa">Pedicure Spa</option>
+                <option value="Retiro y Relleno">Retiro y Relleno</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Estrellas interactivas -->
+          <div class="review-form__field">
+            <label class="review-form__label">Calificación</label>
+            <div class="star-picker" id="starPicker" role="group" aria-label="Selecciona tu calificación">
+              <button type="button" class="star-picker__star" data-val="1" aria-label="1 estrella">★</button>
+              <button type="button" class="star-picker__star" data-val="2" aria-label="2 estrellas">★</button>
+              <button type="button" class="star-picker__star" data-val="3" aria-label="3 estrellas">★</button>
+              <button type="button" class="star-picker__star" data-val="4" aria-label="4 estrellas">★</button>
+              <button type="button" class="star-picker__star" data-val="5" aria-label="5 estrellas">★</button>
+              <span class="star-picker__hint" id="starHint">Selecciona una calificación</span>
+            </div>
+          </div>
+
+          <div class="review-form__field">
+            <label class="review-form__label" for="reviewText">Comentario</label>
+            <textarea class="review-form__input review-form__textarea" id="reviewText"
+                      placeholder="Cuéntanos sobre tu experiencia…"
+                      maxlength="500" rows="4"></textarea>
+            <span class="review-form__counter"><span id="charCount">0</span> / 500</span>
+          </div>
+
+          <p class="review-form__error" id="formError" role="alert"></p>
+
+          <button class="review-form__btn" type="submit" id="submitBtn">
+            Publicar reseña
+            <span class="review-form__btn-arrow" aria-hidden="true">→</span>
+          </button>
+
+        </form>
+
+      </div>
+    </section>
+
+    <!-- ════════════════════════════
+         LISTADO DE RESEÑAS
+    ════════════════════════════ -->
+    <section class="reviews-list-section" aria-labelledby="reviews-list-title">
+      <div class="reviews-list-section__inner">
+
+        <div class="reviews-list-section__header">
+          <div>
+            <p class="reviews-list-section__label">Opiniones verificadas</p>
+            <h2 class="reviews-list-section__title" id="reviews-list-title">
+              Todas las reseñas
+            </h2>
+          </div>
+
+          <!-- Filtro por estrellas -->
+          <div class="reviews-filter" role="group" aria-label="Filtrar por calificación">
+            <button class="reviews-filter__btn active" data-filter="all">Todas</button>
+            <button class="reviews-filter__btn" data-filter="5">★ 5</button>
+            <button class="reviews-filter__btn" data-filter="4">★ 4</button>
+            <button class="reviews-filter__btn" data-filter="3">★ 3</button>
+            <button class="reviews-filter__btn" data-filter="2">★ 2</button>
+            <button class="reviews-filter__btn" data-filter="1">★ 1</button>
+          </div>
+        </div>
+
+        <!-- Grid de reseñas -->
+        <div class="reviews-grid" id="reviewsGrid" aria-live="polite">
+          <!-- Reseñas renderizadas por JS -->
+        </div>
+
+        <!-- Estado vacío -->
+        <div class="reviews-empty" id="reviewsEmpty" hidden>
+          <span class="reviews-empty__icon" aria-hidden="true">✦</span>
+          <p class="reviews-empty__text">Aún no hay reseñas con este filtro.</p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════════════════════
+       FOOTER
+  ════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div>
+        <p class="footer__brand">Michel Yepiz Nails Studio</p>
+      </div>
+      <nav aria-label="Navegación del footer">
+        <p class="footer__heading">Navegación</p>
+        <ul class="footer__list" role="list">
+          <li><a href="homepage.html#servicios">Servicios</a></li>
+          <li><a href="Booking.html">Agenda tu cita</a></li>
+          <li><a href="homepage.html#horarios">Horarios</a></li>
+          <li><a href="reviews.html">Reseñas</a></li>
+        </ul>
+      </nav>
+      <div>
+        <p class="footer__heading">Contacto</p>
+        <ul class="footer__list" role="list">
+          <li><a href="tel:+526421140145">+52 642 114 0145</a></li>
+          <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer">@michelyepiznails</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 Michel Yepiz Nails Studio.</span>
+      <span>Navojoa, Sonora, México</span>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <script type="module" src="scripts/ui/reviews.js"></script>
+
+</body>
+</html>

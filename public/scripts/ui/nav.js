@@ -36,3 +36,10 @@ if (nav) {
     nav.classList.toggle('scrolled', window.scrollY > 8);
   }, { passive: true });
 }
+// ── Mostrar enlace solo si es admin ──────────
+const tipo = localStorage.getItem('tipo');
+if (tipo === 'admin') {
+  const adminLink = document.createElement('li');
+  adminLink.innerHTML = `<a href="\public\admin\BloquearHorarios.html" class="nav__link">Admin</a>`;
+  document.querySelector('.nav__links').appendChild(adminLink);
+}
