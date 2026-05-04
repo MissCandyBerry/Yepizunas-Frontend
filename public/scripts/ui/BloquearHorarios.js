@@ -74,7 +74,7 @@ function buildMonth() {
   const firstDow = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
 
-  let html = Array(firstDow).fill('<div class="cal-day cal-day--empty"></div>').join('');
+  let html = Array(firstDow).fill('').join('');
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date   = new Date(calYear, calMonth, d);
@@ -91,7 +91,7 @@ function buildMonth() {
     if (hasBlocks)   cls += ' cal-day--has-blocks';
 
     const clickable = !isPast;
-    html += `<div class="${cls}" ${clickable ? `data-key="${key}" role="button" tabindex="0" aria-label="${DAYS_ES[date.getDay()]} ${d} de ${MONTHS_ES[calMonth]}"` : ''}>${d}</div>`;
+    html += `<div class="${cls}" tabindex="${clickable ? 0 : -1}" data-key="${key}">${d}</div>`;
   }
 
   calDaysGrid.innerHTML = html;
