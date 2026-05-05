@@ -352,5 +352,25 @@
   <script type="module" src="scripts/ui/nav.js"></script>
   <script type="module" src="scripts/ui/modal.js"></script>
 
+<!-- LÓGICA DE REDIRECCIÓN AUTOMÁTICA -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('openLogin') === 'true') {
+        const modal = document.getElementById('authModal');
+        const panelLogin = document.getElementById('panelLogin');
+        
+        if (modal && panelLogin) {
+          modal.classList.add('active');
+          panelLogin.classList.add('active');
+          
+          // Limpia la URL para que no diga ?openLogin=true
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      }
+    });
+  </script>
+  
 </body>
 </html>

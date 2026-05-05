@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5212';
+const API_BASE = 'https://localhost:7225';
 
 // ── Sanitización básica ──────────────────────────────────
 function sanitize(str) {
@@ -89,6 +89,8 @@ export async function loginUsuario(email, password) {
   localStorage.setItem('tipo', data.tipo);
   if (data.datos?.nombre) {
     localStorage.setItem('nombre', data.datos.nombre);
+    // Guardamos el ID. Ponemos las dos opciones (idUsuario o id) S
+    localStorage.setItem('idCliente', data.datos.idCliente);
   }
   return data;
 }
