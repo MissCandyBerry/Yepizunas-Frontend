@@ -21,10 +21,9 @@ if (btnCuenta && nombre && nombre !== 'undefined') {
   `;
 
   document.getElementById('logout').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('nombre');
-    localStorage.removeItem('tipo');
-    localStorage.removeItem('usuario');
+  localStorage.removeItem('token');
+  localStorage.removeItem('nombre');
+  localStorage.removeItem('rol');
     location.reload();
   });
 }
