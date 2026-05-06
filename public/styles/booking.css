@@ -768,3 +768,27 @@
     justify-content: center;
   }
 }
+/* Aviso de sesión requerido */
+.auth-alert {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff4d8d, #ff85a1);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(255, 77, 141, 0.3);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from { transform: translate(-50%, -100%); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}

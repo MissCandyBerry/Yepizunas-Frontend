@@ -3,6 +3,32 @@
 //  El overlay ya viene .active desde el HTML
 // ──────────────────────────────────────
 
+import { obtenerCitasOcupadas } from './CitasOcupadas.js';
+import { tokenVigente } from '../auth.js';
+
+// booking.js
+
+function verificarSesion() {
+    // Usamos la función que ya valida si el token existe y no ha expirado
+    const sesionActiva = tokenVigente(); 
+
+    if (!sesionActiva) {
+        // Creamos el aviso estético
+        const aviso = document.createElement('div');
+        aviso.className = 'auth-alert';
+        aviso.innerText = "Inicia sesión para agendar tu cita";
+        document.body.appendChild(aviso);
+
+        // Redirigimos al homepage
+        setTimeout(() => {
+            window.location.href = 'homepage.html?openLogin=true'; 
+        }, 1000);
+        
+        return false;
+    }
+    return true;
+}
+
 // ── Servicios (catálogo estático) ──────
 const SERVICES = [
   { id: 1, name: 'Manicure Clásico',  duration: '1 hora' },
@@ -16,13 +42,13 @@ const SERVICES = [
 // ── Horarios mock (UI demo) ────────────
 const MOCK_SLOTS = [
   { time: '09:00', busy: false },
-  { time: '10:00', busy: true  },
+  { time: '10:00', busy: false },
   { time: '11:00', busy: false },
   { time: '12:00', busy: false },
-  { time: '13:00', busy: true  },
+  { time: '13:00', busy: false },
   { time: '14:00', busy: false },
   { time: '15:00', busy: false },
-  { time: '16:00', busy: true  },
+  { time: '16:00', busy: false },
   { time: '17:00', busy: false },
   { time: '18:00', busy: false },
 ];
@@ -63,11 +89,52 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Navegación entre pasos ─────────────
-btnNext?.addEventListener('click', () => {
+// ── Navegación entre pasos ─────────────
+// Le agregamos "async" a la función para poder usar await con el fetch
+btnNext?.addEventListener('click', async () => {
   if (ui.step === 1 && !ui.service) { flashError('Selecciona un servicio para continuar.'); return; }
   if (ui.step === 2 && !ui.date)    { flashError('Selecciona una fecha.'); return; }
   if (ui.step === 2 && !ui.time)    { flashError('Selecciona una hora.'); return; }
-  if (ui.step === 3) { showSuccess(); return; }
+  
+  if (ui.step === 3) { 
+      
+// 1. Armamos la caja EXACTAMENTE como la pide Swagger y C#
+      const citaData = {
+          fecha: fmtKey(ui.date),        
+          horaInicio: ui.time + ":00",   
+          serviciosIds: [ui.service.id], 
+          idCliente: parseInt(localStorage.getItem('idCliente'))        
+      };
+
+      try {
+          const token = localStorage.getItem('token');
+
+          // 2. Se la mandamos al mensajero (Backend)
+          const response = await fetch('https://localhost:7225/api/Cita', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}` 
+              },
+              body: JSON.stringify(citaData)
+          });
+
+          // 3. Revisamos la respuesta
+          if (response.ok) {
+              showSuccess(); // ¡Palomita verde!
+          } else {
+              const errorText = await response.text();
+              flashError('No se pudo guardar la cita. Checa la consola.');
+              console.error("Error del Backend:", errorText);
+          }
+      } catch (error) {
+          flashError('El servidor está apagado o no responde.');
+          console.error("Error de Red:", error);
+      }
+      
+      return; 
+  } 
+  
   goToStep(ui.step + 1);
 });
 
@@ -220,15 +287,34 @@ function renderTimeSlots() {
   }
 
   const dateStr = ui.date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+  
+  // Convertimos la fecha clickeada a formato "YYYY-MM-DD" para compararla
+  const selectedDateIso = fmtKey(ui.date); 
 
   pane.innerHTML = `
     <p class="time-pane__date" style="text-transform:capitalize">${dateStr}</p>
     <div class="time-slots" id="timeSlotsGrid">
-      ${MOCK_SLOTS.map(s => `
-        <div class="time-slot ${s.busy ? 'time-slot--busy' : ''} ${ui.time === s.time ? 'selected' : ''}"
-             ${!s.busy ? `data-time="${s.time}" role="button" tabindex="0"` : 'aria-disabled="true"'}>
+      ${MOCK_SLOTS.map(s => {
+        
+        // ---Comparamos con el Backend ---
+        // Revisamos si en las citas del backend hay alguna que caiga en este día y a esta hora
+        const estaOcupada = citasBackend.some(cita => {
+            // A veces el backend manda la fecha con una 'T' (ej. 2026-05-04T00:00:00), nos quedamos solo con la fecha
+            const citaFecha = cita.fecha.split('T')[0]; 
+            
+            // La hora del backend viene con segundos (10:00:00), la cortamos a 5 letras para que sea "10:00"
+            const citaHora = cita.horaInicio.substring(0, 5); 
+            
+            return citaFecha === selectedDateIso && citaHora === s.time;
+        });
+        // ---------------------------------------------
+
+        return `
+        <div class="time-slot ${estaOcupada ? 'time-slot--busy' : ''} ${ui.time === s.time ? 'selected' : ''}"
+            ${!estaOcupada ? `data-time="${s.time}" role="button" tabindex="0"` : 'aria-disabled="true"'}>
           ${s.time}
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
     </div>`;
 
   document.querySelectorAll('#timeSlotsGrid [data-time]').forEach(slot => {
@@ -298,7 +384,27 @@ function clearError() {
   if (el) { el.textContent = ''; el.style.display = 'none'; }
 }
 
+// Variable global para guardar lo que llegue del backend
+let citasBackend = []; 
+
+async function cargarDatos() {
+    console.log("Cargando citas reales...");
+    citasBackend = await obtenerCitasOcupadas();
+    console.log("¡Citas listas para usar!", citasBackend);
+}
+
 // ── Inicializar al cargar ──────────────
-// El overlay ya tiene clase .active en el HTML,
-// solo necesitamos renderizar el paso 1
-renderStep(1);
+// 1. El guardia de seguridad revisa el gafete ANTES de dejarlo pasar
+if (verificarSesion()) {
+    
+    // 2. Si sí tiene sesión activa, ahora sí cargamos las citas y mostramos la página
+    cargarDatos();
+    renderStep(1); 
+
+} else {
+    // 3. Si no tiene sesión, escondemos el contenedor principal 
+    const overlay = document.getElementById('bookingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
