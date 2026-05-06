@@ -157,10 +157,10 @@ const handleLogin = debounce(async () => {
     mostrarError('panelLogin', 'Por favor llena todos los campos.');
     return;
   }
-  if (!validarEmail(email)) {
-    mostrarError('panelLogin', 'El correo no tiene un formato válido.');
-    return;
-  }
+  //if (!validarEmail(email)) {
+  //  mostrarError('panelLogin', 'El correo no tiene un formato válido.');
+  //  return;
+  //}
 
   // Verificar rate limit antes de llamar al API
   try { checkRateLimit(); } catch (e) {
@@ -173,7 +173,14 @@ const handleLogin = debounce(async () => {
     await loginUsuario(email, password);
     closeModal();
     toast('¡Sesión iniciada con éxito!');
-    setTimeout(() => location.reload(), 900);
+    const rol = localStorage.getItem('rol');
+    setTimeout(() => {
+      if (rol === 'Admin') {
+        window.location.href = '/public/admin/Servicios.html';
+      } else {
+        location.reload();
+      }
+    }, 900);
   } catch (err) {
     mostrarError('panelLogin', err.message);
   } finally {
@@ -211,10 +218,10 @@ const handleRegister = debounce(async () => {
     mostrarError('panelRegister', 'El nombre debe tener al menos 2 caracteres.');
     return;
   }
-  if (!validarEmail(email)) {
-    mostrarError('panelRegister', 'El correo no tiene un formato válido.');
-    return;
-  }
+  // if (!validarEmail(email)) {
+  //   mostrarError('panelRegister', 'El correo no tiene un formato válido.');
+  //   return;
+  // }
 
   const passError = validarPassword(password);
   if (passError) {

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Servicios — Admin · Michel Yepiz Nails Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="servicios.css" />
+</head>
+<body>
+
+  <!-- ════════════════════════════
+       SIDEBAR
+  ════════════════════════════ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Panel de administración">
+
+    <div class="sidebar__brand">
+      <span class="sidebar__brand-mark">MYN</span>
+      <div>
+        <p class="sidebar__brand-name">Michel Yepiz</p>
+        <p class="sidebar__brand-sub">Panel de administración</p>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <p class="sidebar__nav-label">Gestión</p>
+      <ul role="list">
+        <li>
+          <a href="#" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Citas del día
+          </a>
+        </li>
+        <li>
+          <a href="BloquearHorarios.html" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+            Bloquear horarios
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Clientes
+          </a>
+        </li>
+        <li>
+          <a href="Servicios.html" class="sidebar__link sidebar__link--active" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Servicios
+          </a>
+        </li>
+      </ul>
+
+      <p class="sidebar__nav-label" style="margin-top:2rem;">Sitio</p>
+      <ul role="list">
+        <li>
+          <a href="../homepage.html" class="sidebar__link" target="_blank">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Ver sitio web
+            <span class="sidebar__ext" aria-hidden="true">↗</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__avatar" aria-hidden="true">MY</div>
+      <div class="sidebar__user">
+        <p class="sidebar__user-name">Michel Yepiz</p>
+        <p class="sidebar__user-role">Administradora</p>
+      </div>
+      <button class="sidebar__logout" aria-label="Cerrar sesión" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- Overlay para móvil -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- ════════════════════════════
+       MAIN
+  ════════════════════════════ -->
+  <div class="admin-main">
+
+    <!-- Top bar -->
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <button class="admin-topbar__menu" id="menuToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <div>
+          <h1 class="admin-topbar__title">Servicios</h1>
+          <p class="admin-topbar__breadcrumb">Administración · Gestión de servicios</p>
+        </div>
+      </div>
+      <div class="admin-topbar__right">
+        <span class="admin-badge" id="serviceCount">0 servicios</span>
+        <button class="btn-primary" id="btnNuevoServicio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo servicio
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Content ── -->
+    <div class="admin-content admin-content--full">
+
+      <!-- Barra de búsqueda y filtros -->
+      <div class="srv-toolbar">
+        <div class="srv-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="search" id="searchInput" placeholder="Buscar servicio..." aria-label="Buscar servicio" />
+        </div>
+        <div class="srv-filters">
+          <select id="filterEstado" aria-label="Filtrar por estado" class="srv-select">
+            <option value="">Todos los estados</option>
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Estado: cargando -->
+      <div class="srv-state srv-state--loading" id="stateLoading" aria-live="polite">
+        <div class="srv-spinner" aria-hidden="true"></div>
+        <p>Cargando servicios...</p>
+      </div>
+
+      <!-- Estado: error -->
+      <div class="srv-state srv-state--error hidden" id="stateError" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p id="errorMsg">Error al cargar los servicios.</p>
+        <button class="btn-secondary" id="btnRetry">Reintentar</button>
+      </div>
+
+      <!-- Estado: vacío -->
+      <div class="srv-state srv-state--empty hidden" id="stateEmpty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <p>No se encontraron servicios.</p>
+        <button class="btn-primary" id="btnNuevoServicioEmpty">Agregar primer servicio</button>
+      </div>
+
+      <!-- Tabla de servicios -->
+      <div class="srv-table-wrap hidden" id="tableWrap">
+        <table class="services-table" aria-label="Listado de servicios">
+          <thead>
+            <tr>
+              <th scope="col">Servicio</th>
+              <th scope="col">Duración</th>
+              <th scope="col">Precio</th>
+              <th scope="col">Estado</th>
+              <th scope="col"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody id="serviciosBody">
+            <!-- filas inyectadas por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /admin-content -->
+  </div><!-- /admin-main -->
+
+  <!-- ════════════════════════════
+       MODAL — CREAR / EDITAR
+  ════════════════════════════ -->
+  <div class="modal hidden" id="modalForm" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Nuevo servicio</h2>
+        <button class="modal-close" id="btnCerrarModal" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <form id="formServicio" novalidate>
+        <input type="hidden" id="servicioId" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inputNombre">Nombre del servicio</label>
+            <input type="text" id="inputNombre" placeholder="Ej. Manicure clásico" required />
+            <span class="form-error" id="errNombre"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputDescripcion">Descripción</label>
+          <textarea id="inputDescripcion" rows="3" placeholder="Breve descripción del servicio..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inputDuracion">Duración (minutos)</label>
+            <input type="number" id="inputDuracion" min="5" max="480" step="5" placeholder="60" required />
+            <span class="form-error" id="errDuracion"></span>
+          </div>
+          <div class="form-group">
+            <label for="inputPrecio">Precio (MXN)</label>
+            <input type="number" id="inputPrecio" min="0" step="0.01" placeholder="350.00" required />
+            <span class="form-error" id="errPrecio"></span>
+          </div>
+        </div>
+
+        <div class="form-group form-group--toggle">
+          <label for="inputActivo">Estado</label>
+          <div class="toggle-wrap">
+            <button type="button" class="toggle" id="inputActivo" role="switch" aria-checked="true">
+              <span class="toggle__knob"></span>
+            </button>
+            <span class="toggle-label" id="toggleLabel">Activo</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btnGuardar">
+            <span id="btnGuardarText">Guardar servicio</span>
+            <span class="btn-spinner hidden" id="btnSpinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       MODAL — DETALLE (GET by ID)
+  ════════════════════════════ -->
+  <div class="modal hidden" id="modalDetalle" role="dialog" aria-modal="true" aria-labelledby="detalleTitulo">
+    <div class="modal-content modal-content--detail">
+      <div class="modal-header">
+        <h2 class="modal-title" id="detalleTitulo">Detalle del servicio</h2>
+        <button class="modal-close" id="btnCerrarDetalle" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="detail-body" id="detalleBody">
+        <!-- contenido inyectado por JS -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btnCerrarDetalleAlt">Cerrar</button>
+        <button class="btn-primary" id="btnEditarDesdeDetalle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       MODAL — CONFIRMAR ELIMINAR
+  ════════════════════════════ -->
+  <div class="modal hidden" id="modalEliminar" role="dialog" aria-modal="true" aria-labelledby="eliminarTitulo">
+    <div class="modal-content modal-content--confirm">
+      <div class="modal-header">
+        <h2 class="modal-title modal-title--danger" id="eliminarTitulo">Eliminar servicio</h2>
+      </div>
+      <div class="confirm-body">
+        <svg class="confirm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        <p class="confirm-text">¿Estás seguro de que deseas eliminar <strong id="eliminarNombre"></strong>? Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btnCancelarEliminar">Cancelar</button>
+        <button class="btn-danger" id="btnConfirmarEliminar">
+          <span id="btnEliminarText">Sí, eliminar</span>
+          <span class="btn-spinner hidden" id="btnSpinnerEliminar" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notificaciones -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="../scripts/api/services/servicios.js"></script>
+  <script src="../scripts/ui/Servicios.js"></script>
+</body>
+</html>
