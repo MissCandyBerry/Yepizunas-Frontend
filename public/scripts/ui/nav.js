@@ -21,10 +21,9 @@ if (btnCuenta && nombre && nombre !== 'undefined') {
   `;
 
   document.getElementById('logout').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('nombre');
-    localStorage.removeItem('tipo');
-    localStorage.removeItem('usuario');
+  localStorage.removeItem('token');
+  localStorage.removeItem('nombre');
+  localStorage.removeItem('rol');
     location.reload();
   });
 }
@@ -35,4 +34,11 @@ if (nav) {
   window.addEventListener('scroll', () => {
     nav.classList.toggle('scrolled', window.scrollY > 8);
   }, { passive: true });
+}
+// ── Mostrar enlace solo si es admin ──────────
+const tipo = localStorage.getItem('tipo');
+if (tipo === 'admin') {
+  const adminLink = document.createElement('li');
+  adminLink.innerHTML = `<a href="\public\admin\BloquearHorarios.html" class="nav__link">Admin</a>`;
+  document.querySelector('.nav__links').appendChild(adminLink);
 }

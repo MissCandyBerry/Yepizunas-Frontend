@@ -1,4 +1,4 @@
-const API_BASE = 'https://localhost:7225';
+const API_BASE = 'http://localhost:5212';
 
 // ── Sanitización básica ──────────────────────────────────
 function sanitize(str) {
@@ -61,7 +61,7 @@ export function cerrarSesionSiExpirado() {
   if (localStorage.getItem('token') && !tokenVigente()) {
     localStorage.removeItem('token');
     localStorage.removeItem('nombre');
-    localStorage.removeItem('tipo');
+    localStorage.removeItem('rol');
     localStorage.removeItem('usuario');
   }
 }
@@ -85,12 +85,11 @@ export async function loginUsuario(email, password) {
 
   onLoginSuccess();
 
+  // data.tipo siempre viene como "usuario" — el rol real está en data.datos.rol
   localStorage.setItem('token', data.token);
-  localStorage.setItem('tipo', data.tipo);
+  localStorage.setItem('rol', data.datos?.rol || '');
   if (data.datos?.nombre) {
     localStorage.setItem('nombre', data.datos.nombre);
-    // Guardamos el ID. Ponemos las dos opciones (idUsuario o id) S
-    localStorage.setItem('idCliente', data.datos.idCliente);
   }
   return data;
 }
