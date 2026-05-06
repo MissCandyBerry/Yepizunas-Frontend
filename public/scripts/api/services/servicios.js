@@ -1,5 +1,13 @@
 const API_BASE = 'http://localhost:5212/api';
 
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
 /**
  * Desenvuelve la envoltura ServiceResponse<T> que regresa el backend.
  * Si success = false lanza un error con el mensaje exacto del servidor.
@@ -17,7 +25,6 @@ async function parseServiceResponse(res) {
   // Respuesta envuelta en ServiceResponse<T>
   if (body && typeof body.success === 'boolean') {
     if (!body.success) {
-      // Usamos el mensaje exacto que mandó el servidor
       throw new Error(body.message || 'Ocurrió un error en el servidor.');
     }
     return body.data ?? null;
@@ -42,7 +49,7 @@ async function getServicios(queryString = '') {
 
   const res = await fetch(url, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
   });
 
   return parseServiceResponse(res);
@@ -56,7 +63,7 @@ async function getServicios(queryString = '') {
 async function getServicioById(id) {
   const res = await fetch(`${API_BASE}/servicios/${id}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
   });
 
   return parseServiceResponse(res);
@@ -70,7 +77,7 @@ async function getServicioById(id) {
 async function postServicio(data) {
   const res = await fetch(`${API_BASE}/servicios`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
 
@@ -87,7 +94,7 @@ async function postServicio(data) {
 async function putServicio(id, data) {
   const res = await fetch(`${API_BASE}/servicios/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
 
@@ -102,7 +109,7 @@ async function putServicio(id, data) {
 async function deleteServicio(id) {
   const res = await fetch(`${API_BASE}/servicios/${id}`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
   });
 
   return parseServiceResponse(res);
