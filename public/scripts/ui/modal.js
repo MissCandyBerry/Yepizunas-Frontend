@@ -157,10 +157,10 @@ const handleLogin = debounce(async () => {
     mostrarError('panelLogin', 'Por favor llena todos los campos.');
     return;
   }
-  if (!validarEmail(email)) {
-    mostrarError('panelLogin', 'El correo no tiene un formato válido.');
-    return;
-  }
+  //if (!validarEmail(email)) {
+  //  mostrarError('panelLogin', 'El correo no tiene un formato válido.');
+  //  return;
+  //}
 
   // Verificar rate limit antes de llamar al API
   try { checkRateLimit(); } catch (e) {

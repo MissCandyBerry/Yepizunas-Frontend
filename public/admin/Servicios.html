@@ -117,13 +117,6 @@
           <input type="search" id="searchInput" placeholder="Buscar servicio..." aria-label="Buscar servicio" />
         </div>
         <div class="srv-filters">
-          <select id="filterCategoria" aria-label="Filtrar por categoría" class="srv-select">
-            <option value="">Todas las categorías</option>
-            <option value="Uñas">Uñas</option>
-            <option value="Pedicure">Pedicure</option>
-            <option value="Diseño">Diseño</option>
-            <option value="Tratamiento">Tratamiento</option>
-          </select>
           <select id="filterEstado" aria-label="Filtrar por estado" class="srv-select">
             <option value="">Todos los estados</option>
             <option value="activo">Activo</option>
@@ -158,7 +151,6 @@
           <thead>
             <tr>
               <th scope="col">Servicio</th>
-              <th scope="col">Categoría</th>
               <th scope="col">Duración</th>
               <th scope="col">Precio</th>
               <th scope="col">Estado</th>
@@ -194,17 +186,6 @@
             <label for="inputNombre">Nombre del servicio</label>
             <input type="text" id="inputNombre" placeholder="Ej. Manicure clásico" required />
             <span class="form-error" id="errNombre"></span>
-          </div>
-          <div class="form-group">
-            <label for="inputCategoria">Categoría</label>
-            <select id="inputCategoria" required>
-              <option value="">Seleccionar...</option>
-              <option value="Uñas">Uñas</option>
-              <option value="Pedicure">Pedicure</option>
-              <option value="Diseño">Diseño</option>
-              <option value="Tratamiento">Tratamiento</option>
-            </select>
-            <span class="form-error" id="errCategoria"></span>
           </div>
         </div>
 
