@@ -1,70 +1,57 @@
-// ──────────────────────────────────────
-//  servicios.js — CRUD de servicios
-//  Importa utilidades desde adminApi.js
-// ──────────────────────────────────────
-
-import { authHeaders, parseServiceResponse } from '../adminApi.js';
-
+// servicios.js — sin imports
 const API_BASE = 'http://localhost:5212/api';
 
-/**
- * GET /api/servicios
- * @param {string} queryString  ej. 'search=acrilico'
- */
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
+async function parseServiceResponse(res) {
+  const body = await res.json().catch(() => null);
+  if (!res.ok && !body) throw new Error(`Error ${res.status}: ${res.statusText}`);
+  if (body && typeof body.success === 'boolean') {
+    if (!body.success) throw new Error(body.message || 'Error en el servidor.');
+    return body.data ?? null;
+  }
+  if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+  return body;
+}
+
 async function getServicios(queryString = '') {
   const url = queryString
     ? `${API_BASE}/servicios?${queryString}`
     : `${API_BASE}/servicios`;
-
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: authHeaders(),
-  });
+  const res = await fetch(url, { method: 'GET', headers: authHeaders() });
   return parseServiceResponse(res);
 }
 
-/**
- * GET /api/servicios/:id
- */
 async function getServicioById(id) {
   const res = await fetch(`${API_BASE}/servicios/${id}`, {
-    method: 'GET',
-    headers: authHeaders(),
+    method: 'GET', headers: authHeaders(),
   });
   return parseServiceResponse(res);
 }
 
-/**
- * POST /api/servicios
- */
 async function postServicio(data) {
   const res = await fetch(`${API_BASE}/servicios`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return parseServiceResponse(res);
 }
 
-/**
- * PUT /api/servicios/:id
- */
 async function putServicio(id, data) {
   const res = await fetch(`${API_BASE}/servicios/${id}`, {
-    method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'PUT', headers: authHeaders(), body: JSON.stringify(data),
   });
   return parseServiceResponse(res);
 }
 
-/**
- * DELETE /api/servicios/:id
- */
 async function deleteServicio(id) {
   const res = await fetch(`${API_BASE}/servicios/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
+    method: 'DELETE', headers: authHeaders(),
   });
   return parseServiceResponse(res);
 }

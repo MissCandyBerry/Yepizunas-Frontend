@@ -253,8 +253,177 @@
       .agenda-cal-wrap { min-height: 420px; }
       .agenda-list-wrap { min-height: 300px; }
     }
+
+    /* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,10,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay.visible { opacity: 1; pointer-events: auto; }
+
+.modal {
+  background: #fff;
+  border: 1px solid rgba(200,169,138,.2);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease both;
+}
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.75rem 2rem 1.25rem;
+  border-bottom: 1px solid rgba(200,169,138,.2);
+}
+.modal__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: #0a0a0a;
+}
+.modal__sub {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: rgba(10,10,10,0.3);
+  margin-top: 0.25rem;
+}
+.modal__close {
+  background: none;
+  border: 1px solid transparent;
+  color: rgba(10,10,10,0.3);
+  cursor: pointer;
+  padding: 0.3rem;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all 0.3s;
+}
+.modal__close:hover { border-color: rgba(200,169,138,.3); color: #0a0a0a; }
+.modal__body {
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.modal-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.modal-field__label {
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(200,169,138,0.7);
+}
+.modal-field__value {
+  font-size: 0.8rem;
+  color: #0a0a0a;
+}
+.modal-field input,
+.modal-field select,
+.modal-field textarea {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.72rem;
+  color: #0a0a0a;
+  background: #f9f7f5;
+  border: 1px solid rgba(200,169,138,.2);
+  padding: 0.65rem 0.9rem;
+  outline: none;
+  transition: border-color 0.3s;
+  width: 100%;
+}
+.modal-field input:focus,
+.modal-field select:focus,
+.modal-field textarea:focus { border-color: #c8a98a; }
+.modal-field textarea { resize: vertical; min-height: 80px; }
+.modal__footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.25rem 2rem 1.75rem;
+  border-top: 1px solid rgba(200,169,138,.2);
+}
+.modal-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.5rem;
+  border: 1px solid rgba(200,169,138,.3);
+  background: transparent;
+  color: rgba(10,10,10,0.5);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.modal-btn:hover { border-color: #0a0a0a; color: #0a0a0a; }
+.modal-btn--primary {
+  background: #c8a98a;
+  border-color: #c8a98a;
+  color: #0a0a0a;
+  margin-left: auto;
+}
+.modal-btn--primary:hover { background: #b89973; border-color: #b89973; }
   </style>
 </head>
+
+<!-- Modal editar cita -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal__header">
+      <div>
+        <h2 class="modal__title" id="modalTitle">Detalle de cita</h2>
+        <p class="modal__sub" id="modalSub">—</p>
+      </div>
+      <button class="modal__close" id="modalClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="modal-field">
+        <span class="modal-field__label">Cliente</span>
+        <p class="modal-field__value" id="modalCliente">—</p>
+      </div>
+      <div class="modal-field">
+        <span class="modal-field__label">Duración</span>
+        <p class="modal-field__value" id="modalDuracion">—</p>
+      </div>
+      <div class="modal-field">
+        <span class="modal-field__label">Hora</span>
+        <input type="time" id="modalHora" />
+      </div>
+      <div class="modal-field">
+        <span class="modal-field__label">Estado</span>
+        <select id="modalEstado">
+          <option value="Registrada">Registrada</option>
+          <option value="Confirmada">Confirmada</option>
+          <option value="Completada">Completada</option>
+          <option value="Cancelada">Cancelada</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <span class="modal-field__label">Notas</span>
+        <textarea id="modalNotas" placeholder="Notas internas…"></textarea>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="modal-btn" id="modalCancelBtn">Cancelar</button>
+      <button class="modal-btn modal-btn--primary" id="modalSaveBtn">Guardar cambios</button>
+    </div>
+  </div>
+</div>
 <body>
 
   <aside class="sidebar" id="sidebar" role="navigation" aria-label="Panel de administración">

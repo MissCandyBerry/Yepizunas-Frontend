@@ -3,11 +3,33 @@
 //  El overlay ya viene .active desde el HTML
 // ──────────────────────────────────────
 
-import { obtenerCitasOcupadas } from './CitasOcupadas.js';
 import { tokenVigente } from '../auth.js';
 
 // AGREGA SOLO ESTA VARIABLE PARA LA API:
 const API_BASE = 'http://localhost:5212';
+
+// CitasOcupadas.js — sin importar adminApi.js
+const API_URL = 'http://localhost:5212/api/Cita';
+
+let bloqueosBackend = [];
+
+export async function obtenerCitasOcupadas() {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(API_URL, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+    });
+    if (!res.ok) throw new Error('Error al obtener las citas');
+    const json = await res.json();
+    return json.data || [];
+  } catch (error) {
+    console.error('Error conectando al servidor:', error);
+    return [];
+  }
+}
 
 // booking.js
 
@@ -170,7 +192,11 @@ function renderServices() {
   if (!grid) return;
 
   if (!SERVICES.length) {
-    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#999;padding:2rem">Cargando servicios…</p>';
+    grid.innerHTML = `
+      <p style="grid-column:1/-1; text-align:center; color:#c0392b; padding:2rem; font-size:0.8rem;">
+        No se pudieron cargar los servicios. Verifica que el servidor esté activo 
+        en <strong>${API_BASE}</strong> e intenta recargar la página.
+      </p>`;
     return;
   }
 
@@ -332,7 +358,8 @@ function buildMonth() {
 function renderTimeSlots() {
   const pane = document.getElementById('timePaneContent');
   if (!pane) return;
- if (!ui.date) {
+
+  if (!ui.date) {
     pane.innerHTML = `
       <div class="time-pane__placeholder">
         <span class="time-pane__placeholder-icon">🗓</span>
@@ -344,26 +371,41 @@ function renderTimeSlots() {
   const selectedDateIso = fmtKey(ui.date);
   const esSabado = ui.date.getDay() === 6;
 
-  // Filtrar slots según el día
   const slotsDelDia = MOCK_SLOTS.filter(s => {
-    if (esSabado) {
-      // Sábado: solo hasta las 14:00 (horario hasta 15:00, última cita a las 14:00)
-      return s.time <= '14:00';
-    }
-    return true; // Lunes-Viernes: todos los slots
+    if (esSabado) return s.time <= '14:00';
+    return true;
   });
 
-  const dateStr = ui.date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+  const dateStr = ui.date.toLocaleDateString('es-MX', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
+
+  // Slots ocupados por citas
+  const horasConCita = citasBackend
+    .filter(cita => cita.fecha.split('T')[0] === selectedDateIso)
+    .map(cita => cita.horaInicio.substring(0, 5));
+
+  // Slots bloqueados por admin
+  const horasBloqueadas = bloqueosBackend
+    .filter(b => {
+      const fechaBloqueo = b.fecha ? b.fecha.split('T')[0] : null;
+      return fechaBloqueo === selectedDateIso;
+    })
+    .flatMap(b => {
+      // Si es día completo, bloquear todos los slots
+      if (b.diaCompleto) return slotsDelDia.map(s => s.time);
+      // Si tiene hora, bloquear ese slot específico
+      return b.horaInicio ? [b.horaInicio.substring(0, 5)] : [];
+    });
+
+  // Combinar ambos
+  const todasLasHorasOcupadas = new Set([...horasConCita, ...horasBloqueadas]);
 
   pane.innerHTML = `
     <p class="time-pane__date" style="text-transform:capitalize">${dateStr}</p>
     <div class="time-slots" id="timeSlotsGrid">
       ${slotsDelDia.map(s => {
-        const estaOcupada = citasBackend.some(cita => {
-          const citaFecha = cita.fecha.split('T')[0];
-          const citaHora  = cita.horaInicio.substring(0, 5);
-          return citaFecha === selectedDateIso && citaHora === s.time;
-        });
+        const estaOcupada = todasLasHorasOcupadas.has(s.time);
         return `
         <div class="time-slot ${estaOcupada ? 'time-slot--busy' : ''} ${ui.time === s.time ? 'selected' : ''}"
             ${!estaOcupada ? `data-time="${s.time}" role="button" tabindex="0"` : 'aria-disabled="true"'}>
@@ -380,7 +422,9 @@ function renderTimeSlots() {
       clearError();
     };
     slot.addEventListener('click', pick);
-    slot.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pick(); });
+    slot.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') pick();
+    });
   });
 }
 
@@ -458,21 +502,42 @@ function getSlotsOcupadosPorFecha(fechaIso) {
  * Devuelve true si TODOS los slots del día están ocupados
  */
 function isDiaLleno(fechaIso) {
-  const ocupados = getSlotsOcupadosPorFecha(fechaIso);
-  return ocupados.length >= MOCK_SLOTS.length;
+  const ocupadosCitas = getSlotsOcupadosPorFecha(fechaIso);
+
+  const bloqueosDia = bloqueosBackend.filter(b =>
+    b.fecha && b.fecha.split('T')[0] === fechaIso
+  );
+
+  // Si hay un bloqueo de día completo, el día está lleno
+  if (bloqueosDia.some(b => b.diaCompleto)) return true;
+
+  const ocupadosBloqueos = bloqueosDia
+    .map(b => b.horaInicio ? b.horaInicio.substring(0, 5) : null)
+    .filter(Boolean);
+
+  const todosOcupados = new Set([...ocupadosCitas, ...ocupadosBloqueos]);
+  return todosOcupados.size >= MOCK_SLOTS.length;
 }
 
 /**
  * Devuelve true si el día tiene AL MENOS UNA cita (pero no está lleno)
  */
 function isDiaParcial(fechaIso) {
-  const ocupados = getSlotsOcupadosPorFecha(fechaIso);
-  return ocupados.length > 0 && ocupados.length < MOCK_SLOTS.length;
+  const ocupadosCitas = getSlotsOcupadosPorFecha(fechaIso);
+
+  const ocupadosBloqueos = bloqueosBackend
+    .filter(b => b.fecha && b.fecha.split('T')[0] === fechaIso && !b.diaCompleto)
+    .map(b => b.horaInicio ? b.horaInicio.substring(0, 5) : null)
+    .filter(Boolean);
+
+  const todosOcupados = new Set([...ocupadosCitas, ...ocupadosBloqueos]);
+  return todosOcupados.size > 0 && todosOcupados.size < MOCK_SLOTS.length;
 }
 
 async function cargarServicios() {
   try {
     const res  = await fetch(`${API_BASE}/api/servicios`);
+    if (!res.ok) throw new Error(`Error ${res.status}`);
     const body = await res.json();
     const lista = body?.data ?? body ?? [];
     SERVICES = lista.map(s => ({
@@ -482,17 +547,40 @@ async function cargarServicios() {
     }));
   } catch (err) {
     console.error('Error cargando servicios:', err);
-    SERVICES = [];
+    SERVICES = []; // marca error
   }
-  // Re-render paso 1 con los servicios ya cargados
   if (ui.step === 1) renderServices();
 }
 
+async function cargarBloqueos() {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/api/BloqueoHorario`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      }
+    });
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    const json = await res.json();
+    bloqueosBackend = json.data ?? json ?? [];
+  } catch (err) {
+    console.error('Error cargando bloqueos:', err);
+    bloqueosBackend = [];
+  }
+}
+
+
 async function cargarDatos() {
   console.log('Cargando datos...');
-  citasBackend = await obtenerCitasOcupadas();
+  [citasBackend] = await Promise.all([
+    obtenerCitasOcupadas(),
+    cargarBloqueos(),
+  ]);
   console.log('Citas listas:', citasBackend);
+  console.log('Bloqueos listos:', bloqueosBackend);
 }
+
 
 // ── Inicializar al cargar ──────────────
 if (verificarSesion()) {

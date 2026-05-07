@@ -1,15 +1,9 @@
 // ──────────────────────────────────────
 //  BloquearHorarios.js
-//  Admin: bloqueo de horarios
-//  Los bloqueos se guardan en localStorage
-//  (operación puramente local, sin API)
+//  Bloqueo de horarios contra el backend
 // ──────────────────────────────────────
 
-import { verificarSesionAdmin } from '../api/adminApi.js';
-
-if (!verificarSesionAdmin()) throw new Error('Sin sesión');
-
-const STORAGE_KEY = 'myn_admin_blocks';
+const API_BASE = 'http://localhost:5212/api';
 
 const ALL_SLOTS_AM = ['09:00','09:30','10:00','10:30','11:00','11:30'];
 const ALL_SLOTS_PM = ['12:00','12:30','13:00','13:30','14:00','14:30',
@@ -20,11 +14,20 @@ const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const DAYS_ES   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
+// ── Auth ───────────────────────────────
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
 // ── State ──────────────────────────────
 let calYear, calMonth;
 let selectedDate  = null;
-let pendingBlocks = new Set();
-let savedBlocks   = {};
+let pendingBlocks = new Set(); // slots seleccionados para bloquear
+let savedBlocks   = {};        // { 'YYYY-MM-DD': [{id, horaInicio, horaFin, motivo}] }
 
 // ── DOM ────────────────────────────────
 const calDaysGrid       = document.getElementById('calDaysGrid');
@@ -46,22 +49,65 @@ const menuToggle        = document.getElementById('menuToggle');
 const sidebar           = document.getElementById('sidebar');
 const sidebarOverlay    = document.getElementById('sidebarOverlay');
 
-// ── Persistencia ───────────────────────
-function loadBlocks() {
+// ── API ────────────────────────────────
+async function fetchBloqueos() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    savedBlocks = raw ? JSON.parse(raw) : {};
-  } catch { savedBlocks = {}; }
+    const res = await fetch(`${API_BASE}/BloqueoHorario`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    const raw  = await res.json();
+    const list = raw.data ?? raw ?? [];
+
+    // Agrupar por fecha
+    savedBlocks = {};
+    list.forEach(b => {
+      const key = b.fecha ? b.fecha.split('T')[0] : null;
+      if (!key) return;
+      if (!savedBlocks[key]) savedBlocks[key] = [];
+      savedBlocks[key].push({
+        id:         b.idBloqueo ?? b.id,
+        horaInicio: b.horaInicio ? b.horaInicio.substring(0, 5) : null,
+        horaFin:    b.horaFin   ? b.horaFin.substring(0, 5)    : null,
+        motivo:     b.motivo    || '',
+        diaCompleto: b.diaCompleto || false,
+      });
+    });
+
+    updateBadge();
+    renderBlockedList();
+    buildMonth();
+  } catch (err) {
+    toast('Error al cargar bloqueos: ' + err.message, 'error');
+  }
 }
 
-function saveBlocksToStorage() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedBlocks));
-  } catch { /* quota */ }
+async function postBloqueo(fecha, horaInicio, horaFin) {
+  const body = {
+    fecha:      fecha,
+    horaInicio: horaInicio + ':00',
+    horaFin:    horaFin    + ':00',
+    motivo:     'Bloqueado por administrador',
+    diaCompleto: false,
+  };
+  const res = await fetch(`${API_BASE}/BloqueoHorario`, {
+    method:  'POST',
+    headers: authHeaders(),
+    body:    JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Error ${res.status}: ${txt}`);
+  }
+  return res.json();
 }
 
-function dateKey(date) {
-  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+async function deleteBloqueo(id) {
+  const res = await fetch(`${API_BASE}/BloqueoHorario/${id}`, {
+    method:  'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Error ${res.status}`);
 }
 
 // ── Calendario ─────────────────────────
@@ -72,28 +118,32 @@ function initCalendar() {
   buildMonth();
 }
 
+function dateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+
 function buildMonth() {
   calMonthLabel.textContent = `${MONTHS_ES[calMonth]} ${calYear}`;
 
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today       = new Date(); today.setHours(0,0,0,0);
   const firstDow    = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
 
-  let html = Array(firstDow).fill('').join('');
+  let html = Array(firstDow).fill('<div class="cal-day cal-day--empty"></div>').join('');
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const date   = new Date(calYear, calMonth, d);
-    const isPast = date < today;
-    const isToday= date.getTime() === today.getTime();
-    const key    = dateKey(date);
-    const isSel  = selectedDate && dateKey(selectedDate) === key;
+    const date      = new Date(calYear, calMonth, d);
+    const isPast    = date < today;
+    const isToday   = date.getTime() === today.getTime();
+    const key       = dateKey(date);
+    const isSel     = selectedDate && dateKey(selectedDate) === key;
     const hasBlocks = savedBlocks[key] && savedBlocks[key].length > 0;
 
     let cls = 'cal-day';
-    if (isPast)      cls += ' cal-day--past';
-    if (isToday)     cls += ' cal-day--today';
-    if (isSel)       cls += ' cal-day--selected';
-    if (hasBlocks)   cls += ' cal-day--has-blocks';
+    if (isPast)    cls += ' cal-day--past';
+    if (isToday)   cls += ' cal-day--today';
+    if (isSel)     cls += ' cal-day--selected';
+    if (hasBlocks) cls += ' cal-day--has-blocks';
 
     const clickable = !isPast;
     html += `<div class="${cls}" tabindex="${clickable ? 0 : -1}" data-key="${key}">${d}</div>`;
@@ -118,11 +168,26 @@ function selectDate(key) {
 }
 
 // ── Slots ──────────────────────────────
+function getSlotsGuardados(key) {
+  const bloqueos = savedBlocks[key] || [];
+  // Si hay diaCompleto, todos los slots están bloqueados
+  if (bloqueos.some(b => b.diaCompleto)) {
+    return [...ALL_SLOTS_AM, ...ALL_SLOTS_PM];
+  }
+  return bloqueos.map(b => b.horaInicio).filter(Boolean);
+}
+
+function getIdBloqueo(key, hora) {
+  const bloqueos = savedBlocks[key] || [];
+  const found = bloqueos.find(b => b.horaInicio === hora || b.diaCompleto);
+  return found ? found.id : null;
+}
+
 function renderSlots() {
   if (!selectedDate) return;
 
-  const key         = dateKey(selectedDate);
-  const alreadySaved = savedBlocks[key] || [];
+  const key        = dateKey(selectedDate);
+  const alreadySaved = getSlotsGuardados(key);
 
   slotsPlaceholder.hidden = true;
   slotsContent.hidden     = false;
@@ -132,16 +197,16 @@ function renderSlots() {
   selectedDateLabel.textContent = dateStr;
   slotsSubtitle.textContent     = 'Haz clic en los horarios para bloquearlos';
 
-  buildSlotGroup(slotsAM, ALL_SLOTS_AM, alreadySaved);
-  buildSlotGroup(slotsPM, ALL_SLOTS_PM, alreadySaved);
+  buildSlotGroup(slotsAM, ALL_SLOTS_AM, alreadySaved, key);
+  buildSlotGroup(slotsPM, ALL_SLOTS_PM, alreadySaved, key);
   updateSummary();
 }
 
-function buildSlotGroup(container, slots, savedList) {
+function buildSlotGroup(container, slots, savedList, key) {
   container.innerHTML = '';
   slots.forEach(time => {
     const el = document.createElement('div');
-    el.className = 'slot-item';
+    el.className  = 'slot-item';
     el.textContent = time;
     el.setAttribute('role', 'checkbox');
     el.setAttribute('data-time', time);
@@ -149,9 +214,8 @@ function buildSlotGroup(container, slots, savedList) {
     if (savedList.includes(time)) {
       el.classList.add('slot-item--saved');
       el.setAttribute('aria-checked', 'true');
-      el.setAttribute('aria-label', `${time} — bloqueado`);
       el.setAttribute('tabindex', '0');
-      el.addEventListener('click', () => toggleSavedSlot(time, el));
+      el.addEventListener('click', () => toggleSavedSlot(time, key));
     } else {
       el.setAttribute('aria-checked', 'false');
       el.setAttribute('tabindex', '0');
@@ -178,16 +242,18 @@ function togglePendingSlot(time, el) {
   updateSummary();
 }
 
-function toggleSavedSlot(time) {
-  if (!selectedDate) return;
-  const key = dateKey(selectedDate);
-  savedBlocks[key] = (savedBlocks[key] || []).filter(t => t !== time);
-  saveBlocksToStorage();
-  renderSlots();
-  buildMonth();
-  renderBlockedList();
-  updateBadge();
-  toast('Horario desbloqueado');
+async function toggleSavedSlot(time, key) {
+  const id = getIdBloqueo(key, time);
+  if (!id) return;
+
+  try {
+    await deleteBloqueo(id);
+    toast('Horario desbloqueado');
+    await fetchBloqueos();
+    renderSlots();
+  } catch (err) {
+    toast('Error al desbloquear: ' + err.message, 'error');
+  }
 }
 
 function updateSummary() {
@@ -201,10 +267,10 @@ function updateSummary() {
 // Quick actions
 btnSelectAll?.addEventListener('click', () => {
   if (!selectedDate) return;
-  const key   = dateKey(selectedDate);
-  const saved = savedBlocks[key] || [];
-  const all   = [...ALL_SLOTS_AM, ...ALL_SLOTS_PM].filter(t => !saved.includes(t));
-  pendingBlocks = new Set(all);
+  const key      = dateKey(selectedDate);
+  const saved    = getSlotsGuardados(key);
+  const all      = [...ALL_SLOTS_AM, ...ALL_SLOTS_PM].filter(t => !saved.includes(t));
+  pendingBlocks  = new Set(all);
   renderSlots();
   pendingBlocks.forEach(time => {
     const el = document.querySelector(`.slot-item[data-time="${time}"]`);
@@ -224,21 +290,43 @@ btnClearAll?.addEventListener('click', () => {
   updateSummary();
 });
 
-// ── Guardar ────────────────────────────
-saveBtn?.addEventListener('click', () => {
+// ── Guardar bloqueos ───────────────────
+saveBtn?.addEventListener('click', async () => {
   if (!selectedDate || pendingBlocks.size === 0) return;
-  const key      = dateKey(selectedDate);
-  const existing = savedBlocks[key] || [];
-  const merged   = [...new Set([...existing, ...pendingBlocks])].sort();
-  savedBlocks[key] = merged;
 
-  saveBlocksToStorage();
-  pendingBlocks.clear();
-  renderSlots();
-  buildMonth();
-  renderBlockedList();
-  updateBadge();
-  toast(`${merged.length} horario${merged.length > 1 ? 's' : ''} bloqueado${merged.length > 1 ? 's' : ''} correctamente`);
+  const key   = dateKey(selectedDate);
+  const slots = [...pendingBlocks].sort();
+
+  saveBtn.disabled    = true;
+  saveBtn.textContent = 'Guardando…';
+
+  try {
+    // Mandar un POST por cada slot seleccionado
+    // horaFin = horaInicio + 30 min
+    await Promise.all(slots.map(time => {
+      const [h, m]  = time.split(':').map(Number);
+      const finMins = h * 60 + m + 30;
+      const horaFin = `${String(Math.floor(finMins / 60)).padStart(2,'0')}:${String(finMins % 60).padStart(2,'0')}`;
+      return postBloqueo(key, time, horaFin);
+    }));
+
+    toast(`${slots.length} horario${slots.length > 1 ? 's' : ''} bloqueado${slots.length > 1 ? 's' : ''} correctamente`);
+    pendingBlocks.clear();
+    await fetchBloqueos();
+    renderSlots();
+  } catch (err) {
+    toast('Error al guardar: ' + err.message, 'error');
+  } finally {
+    saveBtn.disabled    = false;
+    saveBtn.innerHTML   = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+      Guardar bloqueos`;
+  }
 });
 
 // ── Lista de bloqueos activos ──────────
@@ -264,14 +352,19 @@ function renderBlockedList() {
   blockedList.hidden  = false;
   blockedList.innerHTML = '';
 
-  entries.forEach(([key, slots]) => {
+  entries.forEach(([key, bloqueos]) => {
     const [y, m, d] = key.split('-').map(Number);
-    const date    = new Date(y, m-1, d);
-    const dayName = DAYS_ES[date.getDay()];
-    const dateStr = `${d} de ${MONTHS_ES[m-1]} ${y}`;
+    const date      = new Date(y, m-1, d);
+    const dayName   = DAYS_ES[date.getDay()];
+    const dateStr   = `${d} de ${MONTHS_ES[m-1]} ${y}`;
 
     const entry = document.createElement('div');
     entry.className = 'blocked-entry';
+
+    const slots = bloqueos.map(b =>
+      b.diaCompleto ? 'Día completo' : b.horaInicio
+    );
+
     entry.innerHTML = `
       <div>
         <p class="blocked-entry__day">${dayName}</p>
@@ -284,15 +377,16 @@ function renderBlockedList() {
               aria-label="Eliminar bloqueos del ${dateStr}" title="Eliminar todos">✕</button>
     `;
 
-    entry.querySelector('.blocked-entry__remove').addEventListener('click', e => {
-      const k = e.currentTarget.dataset.key;
-      delete savedBlocks[k];
-      saveBlocksToStorage();
-      renderBlockedList();
-      buildMonth();
-      updateBadge();
-      if (selectedDate && dateKey(selectedDate) === k) renderSlots();
-      toast('Bloqueos eliminados');
+    // Botón eliminar todos los bloqueos del día
+    entry.querySelector('.blocked-entry__remove').addEventListener('click', async () => {
+      try {
+        await Promise.all(bloqueos.map(b => deleteBloqueo(b.id)));
+        toast('Bloqueos eliminados');
+        await fetchBloqueos();
+        if (selectedDate && dateKey(selectedDate) === key) renderSlots();
+      } catch (err) {
+        toast('Error al eliminar: ' + err.message, 'error');
+      }
     });
 
     blockedList.appendChild(entry);
@@ -308,22 +402,17 @@ function updateBadge() {
 function toast(msg, type = 'success') {
   const container = document.getElementById('adminToast');
   const el = document.createElement('div');
-  el.className = `admin-toast${type === 'error' ? ' admin-toast--error' : ''}`;
-  el.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      ${type === 'error'
-        ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
-        : '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'}
-    </svg>
-    ${msg}
+  el.style.cssText = `
+    position:fixed; bottom:2rem; right:2rem; z-index:999;
+    background:#fff; border:1px solid rgba(200,169,138,0.2);
+    border-left:3px solid ${type === 'error' ? '#d97070' : '#c8a98a'};
+    padding:.9rem 1.4rem; font-family:'Montserrat',sans-serif;
+    font-size:.68rem; letter-spacing:.06em; color:#0a0a0a;
+    box-shadow:0 4px 20px rgba(0,0,0,.08);
   `;
+  el.textContent = msg;
   container.appendChild(el);
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
-  setTimeout(() => {
-    el.classList.add('hide');
-    setTimeout(() => el.remove(), 350);
-  }, 3000);
+  setTimeout(() => el.remove(), 3500);
 }
 
 // ── Sidebar mobile ─────────────────────
@@ -350,7 +439,6 @@ document.getElementById('calNext')?.addEventListener('click', () => {
 });
 
 // ── Init ───────────────────────────────
-loadBlocks();
 initCalendar();
-renderBlockedList();
-updateBadge();
+fetchBloqueos();
+

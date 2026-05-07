@@ -19,6 +19,14 @@ const $ = id => document.getElementById(id);
 const today    = new Date();
 const fechaHoy = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
 function horaCorta(h) { return h ? h.substring(0, 5) : '—'; }
 
 function calcDuracion(inicio, fin) {
@@ -63,7 +71,9 @@ function showToast(msg, tipo = 'ok') {
 async function fetchCliente(id) {
   if (clientes[id]) return clientes[id];
   try {
-    const res  = await fetch(`${API_BASE}/Cliente/${id}`);
+    const res  = await fetch(`${API_BASE}/Cliente/${id}`, {
+      headers: authHeaders()
+    });
     if (!res.ok) throw new Error();
     const raw  = await res.json();
     const data = raw.data ?? raw;
@@ -80,7 +90,9 @@ async function fetchCliente(id) {
 async function cargarCitas() {
   $('agendaBadge').textContent = 'Cargando…';
   try {
-    const res   = await fetch(`${API_BASE}/Cita`);
+    const res = await fetch(`${API_BASE}/Cita`, {
+      headers: authHeaders()
+    });
     if (!res.ok) throw new Error(`Error ${res.status}`);
     const raw   = await res.json();
     const todas = Array.isArray(raw)
@@ -108,7 +120,7 @@ async function cargarCitas() {
     $('agendaBadge').textContent = `${total} cita${total !== 1 ? 's' : ''} en total`;
 
     renderCalendario();
-    seleccionarDia(fechaHoy); // seleccionar hoy por defecto
+    seleccionarDia(fechaHoy);
   } catch (err) {
     showToast('No se pudieron cargar las citas: ' + err.message, 'error');
     $('agendaBadge').textContent = 'Error';
@@ -196,21 +208,29 @@ function renderListaDia(fechaStr) {
   }
 
   $('listBody').innerHTML = citasDia.map(c => {
-    const cls = estadoClass(c.estado);
-    return `
-      <div class="agenda-card">
-        <div class="agenda-card__hora">
-          ${c.hora}
-          <span>${c.horaFin !== '—' ? `hasta ${c.horaFin}` : ''}</span>
-        </div>
-        <div class="agenda-card__info">
-          <p class="agenda-card__cliente">${c.cliente}</p>
-          ${c.tel ? `<p class="agenda-card__tel">${c.tel}</p>` : ''}
-          <p class="agenda-card__duracion">${c.duracion !== '—' ? c.duracion : ''}</p>
-        </div>
-        <span class="agenda-card__badge agenda-card__badge--${cls}">${c.estado}</span>
-      </div>`;
-  }).join('');
+  const cls = estadoClass(c.estado);
+  return `
+    <div class="agenda-card" data-id="${c.id}" style="cursor:pointer;">
+      <div class="agenda-card__hora">
+        ${c.hora}
+        <span>${c.horaFin !== '—' ? `hasta ${c.horaFin}` : ''}</span>
+      </div>
+      <div class="agenda-card__info">
+        <p class="agenda-card__cliente">${c.cliente}</p>
+        ${c.tel ? `<p class="agenda-card__tel">${c.tel}</p>` : ''}
+        <p class="agenda-card__duracion">${c.duracion !== '—' ? c.duracion : ''}</p>
+      </div>
+      <span class="agenda-card__badge agenda-card__badge--${cls}">${c.estado}</span>
+    </div>`;
+}).join('');
+
+// Agregar click a cada tarjeta
+$('listBody').querySelectorAll('.agenda-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const cita = todasLasCitas.find(c => c.id === Number(card.dataset.id));
+    if (cita) abrirModal(cita);
+  });
+});
 }
 
 /* ══════════════════════════════════════════
@@ -241,4 +261,93 @@ $('sidebarOverlay').addEventListener('click', () => {
 /* ══════════════════════════════════════════
    INIT
 ══════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════
+   MODAL EDITAR CITA
+══════════════════════════════════════════ */
+let citaEditando = null;
+
+function abrirModal(cita) {
+  citaEditando = cita;
+  $('modalCliente').textContent  = cita.cliente;
+  $('modalDuracion').textContent = cita.duracion !== '—' ? cita.duracion : '—';
+  $('modalHora').value           = cita.hora;
+  $('modalEstado').value         = cita.estado;
+  $('modalNotas').value          = '';
+  $('modalSub').textContent      = `${cita.fecha} · ${cita.hora}`;
+  $('modalOverlay').classList.add('visible');
+}
+
+function cerrarModal() {
+  $('modalOverlay').classList.remove('visible');
+  citaEditando = null;
+}
+
+async function guardarModal() {
+  if (!citaEditando) return;
+  const btn = $('modalSaveBtn');
+  btn.textContent = 'Guardando…';
+  btn.disabled    = true;
+
+  try {
+    // Primero obtenemos la cita original del backend para no perder campos
+    const resGet = await fetch(`${API_BASE}/Cita/${citaEditando.id}`, {
+      headers: authHeaders()
+    });
+    if (!resGet.ok) throw new Error(`Error al obtener la cita: ${resGet.status}`);
+    const raw = await resGet.json();
+    const citaOriginal = raw.data ?? raw;
+
+    // Construimos el body con los datos originales + los cambios del modal
+    const body = {
+      ...citaOriginal,
+      horaInicio: $('modalHora').value + ':00',
+      estado:     $('modalEstado').value,
+    };
+
+    const res = await fetch(`${API_BASE}/Cita/${citaEditando.id}`, {
+      method:  'PUT',
+      headers: authHeaders(),
+      body:    JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Error del backend:', errorText);
+      throw new Error(`Error ${res.status}`);
+    }
+
+    // Actualizar en memoria
+    citaEditando.hora   = $('modalHora').value;
+    citaEditando.estado = $('modalEstado').value;
+
+    // Actualizar también en todasLasCitas
+    const idx = todasLasCitas.findIndex(c => c.id === citaEditando.id);
+    if (idx !== -1) {
+      todasLasCitas[idx].hora   = citaEditando.hora;
+      todasLasCitas[idx].estado = citaEditando.estado;
+    }
+
+    cerrarModal();
+    showToast('Cita actualizada correctamente');
+
+    if (diaSeleccionado) renderListaDia(diaSeleccionado);
+    renderCalendario();
+
+  } catch (err) {
+    showToast('No se pudo guardar: ' + err.message, 'error');
+  } finally {
+    btn.textContent = 'Guardar cambios';
+    btn.disabled    = false;
+  }
+}
+
+$('modalClose').addEventListener('click', cerrarModal);
+$('modalCancelBtn').addEventListener('click', cerrarModal);
+$('modalSaveBtn').addEventListener('click', guardarModal);
+$('modalOverlay').addEventListener('click', e => {
+  if (e.target === $('modalOverlay')) cerrarModal();
+});
+
+
 cargarCitas();

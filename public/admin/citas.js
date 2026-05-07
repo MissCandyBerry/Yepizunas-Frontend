@@ -19,6 +19,14 @@ const $ = id => document.getElementById(id);
 const today    = new Date();
 const fechaHoy = today.toISOString().split('T')[0];
 
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
 function formatFecha(d) {
   return d.toLocaleDateString('es-MX', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -74,7 +82,9 @@ function setLoading(on) {
 async function fetchCliente(idCliente) {
   if (clientes[idCliente]) return clientes[idCliente];
   try {
-    const res  = await fetch(`${API_BASE}/Cliente/${idCliente}`);
+    const res  = await fetch(`${API_BASE}/Cliente/${idCliente}`, {
+      headers: authHeaders()
+    });
     if (!res.ok) throw new Error();
     const raw  = await res.json();
     const data = raw.data ?? raw;
@@ -94,7 +104,9 @@ async function fetchCliente(idCliente) {
 async function cargarCitas() {
   setLoading(true);
   try {
-    const res   = await fetch(`${API_BASE}/Cita`);
+    const res   = await fetch(`${API_BASE}/Cita`, {
+      headers: authHeaders()
+    });
     if (!res.ok) throw new Error(`Error ${res.status}`);
     const raw   = await res.json();
     const todas = Array.isArray(raw)
@@ -120,7 +132,6 @@ async function cargarCitas() {
       })
     );
 
-    // Solo las de hoy
     citas = enriquecidas.filter(c => c.fecha === fechaHoy);
     renderStats();
     renderTabla();
@@ -142,7 +153,7 @@ async function actualizarCita(cita) {
   };
   const res = await fetch(`${API_BASE}/Cita/${cita.id}`, {
     method:  'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body:    JSON.stringify(body)
   });
   if (!res.ok) throw new Error(`Error ${res.status}`);
@@ -152,7 +163,10 @@ async function actualizarCita(cita) {
    API — CANCELAR CITA (DELETE)
 ══════════════════════════════════════════ */
 async function cancelarCita(id) {
-  const res = await fetch(`${API_BASE}/Cita/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${API_BASE}/Cita/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  });
   if (!res.ok) throw new Error(`Error ${res.status}`);
 }
 
@@ -161,10 +175,7 @@ async function cancelarCita(id) {
 ══════════════════════════════════════════ */
 function citasFiltradas() {
   return citas.filter(c => {
-    const matchFiltro = filtroActivo === 'todas' || c.estado === filtroActivo;
-    const q           = busqueda.toLowerCase();
-    const matchBusq   = !q || c.cliente.toLowerCase().includes(q);
-    return matchFiltro && matchBusq;
+    return filtroActivo === 'todas' || c.estado === filtroActivo;
   });
 }
 
@@ -192,7 +203,6 @@ function renderTabla() {
         <p class="cita-cliente__nombre">${c.cliente}</p>
         ${c.tel ? `<p class="cita-cliente__tel">${c.tel}</p>` : ''}
       </td>
-      <td><span class="cita-servicio">—</span></td>
       <td><span class="cita-duracion">${c.duracion}</span></td>
       <td><span class="cita-status cita-status--${cls}">${c.estado}</span></td>
       <td>
@@ -221,7 +231,6 @@ function abrirModal(id) {
   citaEditando = citas.find(c => c.id === id);
   if (!citaEditando) return;
   $('modalCliente').textContent  = citaEditando.cliente;
-  $('modalServicio').textContent = `${citaEditando.hora} → ${citaEditando.horaFin} (${citaEditando.duracion})`;
   $('modalHora').value           = citaEditando.hora;
   $('modalEstado').value         = citaEditando.estado;
   $('modalNotas').value          = '';
@@ -271,10 +280,7 @@ document.querySelectorAll('.citas-tab').forEach(btn => {
   });
 });
 
-$('citasSearch').addEventListener('input', e => {
-  busqueda = e.target.value;
-  renderTabla();
-});
+
 
 $('citasTableBody').addEventListener('click', async e => {
   const btn    = e.target.closest('[data-accion]');

@@ -127,17 +127,13 @@
           <button class="citas-tab" data-filter="Completada" role="tab">Completadas</button>
           <button class="citas-tab" data-filter="Cancelada" role="tab">Canceladas</button>
         </div>
-        <div class="citas-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="search" id="citasSearch" placeholder="Buscar cliente o servicio…" aria-label="Buscar cita" />
-        </div>
       </div>
 
       <div class="citas-table-wrap">
         <table class="citas-table" aria-label="Lista de citas">
           <thead>
             <tr>
-              <th>Hora</th><th>Cliente</th><th>Servicio</th><th>Duración</th><th>Estado</th><th>Acciones</th>
+              <th>Hora</th><th>Cliente</th><th>Duración</th><th>Estado</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody id="citasTableBody"></tbody>
@@ -165,10 +161,6 @@
         <div class="modal-field">
           <span class="modal-field__label">Cliente</span>
           <p class="modal-field__value" id="modalCliente">—</p>
-        </div>
-        <div class="modal-field">
-          <span class="modal-field__label">Servicio</span>
-          <p class="modal-field__value" id="modalServicio">—</p>
         </div>
         <div class="modal-field">
           <span class="modal-field__label">Hora</span>

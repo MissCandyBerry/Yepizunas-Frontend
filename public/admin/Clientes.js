@@ -1,14 +1,13 @@
 /* ══════════════════════════════════════════
    CONFIGURACIÓN
 ══════════════════════════════════════════ */
-const API_BASE_CITA    = 'http://localhost:5212/api';
-const API_BASE_CLIENTE = 'http://localhost:5212';
+const API_BASE_CLIENTE = 'http://localhost:5212/api';
 
 /* ══════════════════════════════════════════
    ESTADO
 ══════════════════════════════════════════ */
-let clientes     = [];
-let busqueda     = '';
+let clientes        = [];
+let busqueda        = '';
 let clienteEditando = null;
 
 /* ══════════════════════════════════════════
@@ -16,8 +15,18 @@ let clienteEditando = null;
 ══════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
 
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
 function formatFecha(d) {
-  return new Date(d).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(d).toLocaleDateString('es-MX', {
+    year: 'numeric', month: 'short', day: 'numeric'
+  });
 }
 
 function showToast(msg, tipo = 'ok') {
@@ -42,10 +51,11 @@ function showToast(msg, tipo = 'ok') {
 async function cargarClientes() {
   $('clientesBadge').textContent = 'Cargando…';
   try {
-    const res = await fetch(`${API_BASE_CLIENTE}/Cliente`);
+    const res = await fetch(`${API_BASE_CLIENTE}/Cliente`, {
+      headers: authHeaders()
+    });
     if (!res.ok) throw new Error(`Error ${res.status}`);
     const raw = await res.json();
-    // Soporta array directo o envuelto en { data: [...] }
     clientes = Array.isArray(raw)
       ? raw
       : raw.data ?? raw.clientes ?? raw.result ?? raw.value
@@ -111,7 +121,6 @@ function renderTabla() {
 }
 
 function renderBadge() {
-  const activos = clientes.filter(c => c.activo !== false).length;
   $('clientesBadge').textContent = `${clientes.length} cliente${clientes.length !== 1 ? 's' : ''}`;
 }
 

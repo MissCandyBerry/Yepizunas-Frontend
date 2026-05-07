@@ -10,6 +10,7 @@
   // ── Estado ───────────────────────────────────────────────
   let servicioActivo = null; // servicio seleccionado para editar / ver / eliminar
   let modoEdicion    = false;
+  let todosLosServicios = []; 
 
   // ── Referencias DOM ──────────────────────────────────────
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
@@ -135,11 +136,6 @@
         <td><span class="srv-duration">${s.duracionMinutos} min</span></td>
         <td><span class="srv-price">${formatPrecio(s.precioBase)}</span></td>
         <td>
-          <span class="srv-status srv-status--${s.activo ? 'activo' : 'inactivo'}">
-            ${s.activo ? 'Activo' : 'Inactivo'}
-          </span>
-        </td>
-        <td>
           <div class="srv-actions">
             <button class="srv-btn srv-btn--view"   title="Ver detalle"  data-action="ver"      data-id="${s.idServicio}" aria-label="Ver ${escapeHtml(s.nombreServicio)}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -157,23 +153,31 @@
   }
 
   // ── Carga / búsqueda ─────────────────────────────────────
-  async function cargarServicios() {
-    showState('loading');
+async function cargarServicios() {
+  showState('loading');
 
-    const params = new URLSearchParams();
-    const txt = elSearch.value.trim();
-
-    if (txt) params.set('search', txt);
-
-    try {
-      const lista = await getServicios(params.toString());
-
-      renderTabla(lista);
-    } catch (err) {
-      showState('error');
-      elErrorMsg.textContent = err.message || 'Error al cargar los servicios.';
-    }
+  try {
+    const lista = await getServicios();
+    todosLosServicios = lista; // guarda todos
+    filtrarYRenderizar();
+  } catch (err) {
+    showState('error');
+    elErrorMsg.textContent = err.message || 'Error al cargar los servicios.';
   }
+}
+
+function filtrarYRenderizar() {
+  const txt = elSearch.value.trim().toLowerCase();
+
+  const filtrados = txt
+    ? todosLosServicios.filter(s =>
+        (s.nombreServicio  || '').toLowerCase().includes(txt) ||
+        (s.descripcion     || '').toLowerCase().includes(txt)
+      )
+    : todosLosServicios;
+
+  renderTabla(filtrados);
+}
 
   // ── Ver detalle (GET /api/servicios/:id) ─────────────────
   async function verDetalle(id) {
@@ -208,7 +212,6 @@
       <div class="detail-row"><span class="detail-label">Descripción</span>     <span class="detail-value">${escapeHtml(s.descripcion)}</span></div>
       <div class="detail-row"><span class="detail-label">Duración</span>        <span class="detail-value">${s.duracionMinutos} minutos</span></div>
       <div class="detail-row"><span class="detail-label">Precio base</span>     <span class="detail-value">${typeof s.precioBase === 'number' ? formatPrecio(s.precioBase) + ' MXN' : s.precioBase}</span></div>
-      <div class="detail-row"><span class="detail-label">Estado</span>          <span class="detail-value srv-status srv-status--${s.activo ? 'activo' : 'inactivo'}">${s.activo ? 'Activo' : 'Inactivo'}</span></div>
       <div class="detail-row"><span class="detail-label">Fecha de alta</span>   <span class="detail-value">${formatFecha(s.fechaAlta)}</span></div>
       <div class="detail-row"><span class="detail-label">Última actualiz.</span><span class="detail-value">${formatFecha(s.fechaUpdate)}</span></div>
     `;
@@ -368,6 +371,8 @@
 
       cerrarModal(elModalForm);
       // Re-fetch desde el servidor — el front no guarda estado local
+      todosLosServicios = [];
+      elSearch.value = '';
       await cargarServicios();
     } catch (err) {
       toast(err.message || 'Ocurrió un error al guardar.', 'error');
@@ -391,6 +396,8 @@
       toast('Servicio eliminado.');
       cerrarModal(elModalDel);
       // Re-fetch desde el servidor
+      todosLosServicios = [];
+      elSearch.value = '';
       await cargarServicios();
     } catch (err) {
       toast(err.message || 'No se pudo eliminar el servicio.', 'error');
@@ -441,11 +448,11 @@
 
   // ── Filtros — disparan re-fetch al servidor ───────────────
   // Debounce en el search para no spamear el API mientras el usuario escribe
-  let searchTimer;
-  elSearch?.addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(cargarServicios, 350);
-  });
+let searchTimer;
+elSearch?.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(filtrarYRenderizar, 250);
+});
 
   // ── Reintentar ────────────────────────────────────────────
   $('#btnRetry')?.addEventListener('click', cargarServicios);
