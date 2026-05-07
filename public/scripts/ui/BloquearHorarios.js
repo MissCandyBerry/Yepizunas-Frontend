@@ -1,11 +1,16 @@
 // ──────────────────────────────────────
-//  block-schedule.js
+//  BloquearHorarios.js
 //  Admin: bloqueo de horarios
+//  Los bloqueos se guardan en localStorage
+//  (operación puramente local, sin API)
 // ──────────────────────────────────────
+
+import { verificarSesionAdmin } from '../api/adminApi.js';
+
+if (!verificarSesionAdmin()) throw new Error('Sin sesión');
 
 const STORAGE_KEY = 'myn_admin_blocks';
 
-// Todos los slots posibles en un día
 const ALL_SLOTS_AM = ['09:00','09:30','10:00','10:30','11:00','11:30'];
 const ALL_SLOTS_PM = ['12:00','12:30','13:00','13:30','14:00','14:30',
                       '15:00','15:30','16:00','16:30','17:00','17:30',
@@ -17,29 +22,29 @@ const DAYS_ES   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','S
 
 // ── State ──────────────────────────────
 let calYear, calMonth;
-let selectedDate  = null;   // Date object
-let pendingBlocks = new Set(); // slots seleccionados en UI (aún no guardados)
-let savedBlocks   = {};        // { 'YYYY-MM-DD': ['09:00', ...] }
+let selectedDate  = null;
+let pendingBlocks = new Set();
+let savedBlocks   = {};
 
 // ── DOM ────────────────────────────────
-const calDaysGrid    = document.getElementById('calDaysGrid');
-const calMonthLabel  = document.getElementById('calMonthLabel');
-const slotsPlaceholder = document.getElementById('slotsPlaceholder');
-const slotsContent   = document.getElementById('slotsContent');
-const slotsAM        = document.getElementById('slotsAM');
-const slotsPM        = document.getElementById('slotsPM');
+const calDaysGrid       = document.getElementById('calDaysGrid');
+const calMonthLabel     = document.getElementById('calMonthLabel');
+const slotsPlaceholder  = document.getElementById('slotsPlaceholder');
+const slotsContent      = document.getElementById('slotsContent');
+const slotsAM           = document.getElementById('slotsAM');
+const slotsPM           = document.getElementById('slotsPM');
 const selectedDateLabel = document.getElementById('selectedDateLabel');
-const slotsSubtitle  = document.getElementById('slotsSubtitle');
-const slotsSummary   = document.getElementById('slotsSummary');
-const saveBtn        = document.getElementById('saveBtn');
-const btnSelectAll   = document.getElementById('btnSelectAll');
-const btnClearAll    = document.getElementById('btnClearAll');
-const blockedList    = document.getElementById('blockedList');
-const blockedEmpty   = document.getElementById('blockedEmpty');
-const blockCount     = document.getElementById('blockCount');
-const menuToggle     = document.getElementById('menuToggle');
-const sidebar        = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
+const slotsSubtitle     = document.getElementById('slotsSubtitle');
+const slotsSummary      = document.getElementById('slotsSummary');
+const saveBtn           = document.getElementById('saveBtn');
+const btnSelectAll      = document.getElementById('btnSelectAll');
+const btnClearAll       = document.getElementById('btnClearAll');
+const blockedList       = document.getElementById('blockedList');
+const blockedEmpty      = document.getElementById('blockedEmpty');
+const blockCount        = document.getElementById('blockCount');
+const menuToggle        = document.getElementById('menuToggle');
+const sidebar           = document.getElementById('sidebar');
+const sidebarOverlay    = document.getElementById('sidebarOverlay');
 
 // ── Persistencia ───────────────────────
 function loadBlocks() {
@@ -71,7 +76,7 @@ function buildMonth() {
   calMonthLabel.textContent = `${MONTHS_ES[calMonth]} ${calYear}`;
 
   const today = new Date(); today.setHours(0,0,0,0);
-  const firstDow = new Date(calYear, calMonth, 1).getDay();
+  const firstDow    = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
 
   let html = Array(firstDow).fill('').join('');
@@ -106,7 +111,7 @@ function buildMonth() {
 
 function selectDate(key) {
   const [y, m, d] = key.split('-').map(Number);
-  selectedDate = new Date(y, m-1, d);
+  selectedDate  = new Date(y, m-1, d);
   pendingBlocks = new Set();
   buildMonth();
   renderSlots();
@@ -116,18 +121,16 @@ function selectDate(key) {
 function renderSlots() {
   if (!selectedDate) return;
 
-  const key = dateKey(selectedDate);
+  const key         = dateKey(selectedDate);
   const alreadySaved = savedBlocks[key] || [];
 
-  // Show panel
   slotsPlaceholder.hidden = true;
-  slotsContent.hidden = false;
+  slotsContent.hidden     = false;
 
-  // Update labels
-  const dow = DAYS_ES[selectedDate.getDay()];
+  const dow     = DAYS_ES[selectedDate.getDay()];
   const dateStr = `${dow}, ${selectedDate.getDate()} de ${MONTHS_ES[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`;
   selectedDateLabel.textContent = dateStr;
-  slotsSubtitle.textContent = 'Haz clic en los horarios para bloquearlos';
+  slotsSubtitle.textContent     = 'Haz clic en los horarios para bloquearlos';
 
   buildSlotGroup(slotsAM, ALL_SLOTS_AM, alreadySaved);
   buildSlotGroup(slotsPM, ALL_SLOTS_PM, alreadySaved);
@@ -148,12 +151,11 @@ function buildSlotGroup(container, slots, savedList) {
       el.setAttribute('aria-checked', 'true');
       el.setAttribute('aria-label', `${time} — bloqueado`);
       el.setAttribute('tabindex', '0');
-      // Al hacer clic en uno ya guardado lo marca como "quitar bloqueo" = lo agrega a pendingBlocks con flag
       el.addEventListener('click', () => toggleSavedSlot(time, el));
     } else {
       el.setAttribute('aria-checked', 'false');
       el.setAttribute('tabindex', '0');
-      el.addEventListener('click', () => togglePendingSlot(time, el));
+      el.addEventListener('click',   () => togglePendingSlot(time, el));
       el.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePendingSlot(time, el); }
       });
@@ -176,8 +178,7 @@ function togglePendingSlot(time, el) {
   updateSummary();
 }
 
-// Al hacer clic en uno ya guardado: lo des-marca (lo quita del saved)
-function toggleSavedSlot(time, el) {
+function toggleSavedSlot(time) {
   if (!selectedDate) return;
   const key = dateKey(selectedDate);
   savedBlocks[key] = (savedBlocks[key] || []).filter(t => t !== time);
@@ -192,22 +193,19 @@ function toggleSavedSlot(time, el) {
 function updateSummary() {
   const count = pendingBlocks.size;
   saveBtn.disabled = count === 0;
-  if (count === 0) {
-    slotsSummary.innerHTML = 'Ningún horario seleccionado';
-  } else {
-    slotsSummary.innerHTML = `<strong>${count}</strong> horario${count > 1 ? 's' : ''} seleccionado${count > 1 ? 's' : ''}`;
-  }
+  slotsSummary.innerHTML = count === 0
+    ? 'Ningún horario seleccionado'
+    : `<strong>${count}</strong> horario${count > 1 ? 's' : ''} seleccionado${count > 1 ? 's' : ''}`;
 }
 
 // Quick actions
 btnSelectAll?.addEventListener('click', () => {
   if (!selectedDate) return;
-  const key = dateKey(selectedDate);
+  const key   = dateKey(selectedDate);
   const saved = savedBlocks[key] || [];
-  const all = [...ALL_SLOTS_AM, ...ALL_SLOTS_PM].filter(t => !saved.includes(t));
+  const all   = [...ALL_SLOTS_AM, ...ALL_SLOTS_PM].filter(t => !saved.includes(t));
   pendingBlocks = new Set(all);
   renderSlots();
-  // Re-mark selected
   pendingBlocks.forEach(time => {
     const el = document.querySelector(`.slot-item[data-time="${time}"]`);
     if (el && !el.classList.contains('slot-item--saved')) {
@@ -229,9 +227,7 @@ btnClearAll?.addEventListener('click', () => {
 // ── Guardar ────────────────────────────
 saveBtn?.addEventListener('click', () => {
   if (!selectedDate || pendingBlocks.size === 0) return;
-  const key = dateKey(selectedDate);
-
-  // Merge con los ya guardados
+  const key      = dateKey(selectedDate);
   const existing = savedBlocks[key] || [];
   const merged   = [...new Set([...existing, ...pendingBlocks])].sort();
   savedBlocks[key] = merged;
@@ -259,7 +255,7 @@ function renderBlockedList() {
     .sort(([a], [b]) => a.localeCompare(b));
 
   if (entries.length === 0) {
-    blockedList.hidden = true;
+    blockedList.hidden  = true;
     blockedEmpty.hidden = false;
     return;
   }
@@ -270,7 +266,7 @@ function renderBlockedList() {
 
   entries.forEach(([key, slots]) => {
     const [y, m, d] = key.split('-').map(Number);
-    const date = new Date(y, m-1, d);
+    const date    = new Date(y, m-1, d);
     const dayName = DAYS_ES[date.getDay()];
     const dateStr = `${d} de ${MONTHS_ES[m-1]} ${y}`;
 
@@ -284,10 +280,11 @@ function renderBlockedList() {
           ${slots.map(s => `<span class="blocked-entry__slot-pill">${s}</span>`).join('')}
         </div>
       </div>
-      <button class="blocked-entry__remove" data-key="${key}" aria-label="Eliminar bloqueos del ${dateStr}" title="Eliminar todos los bloqueos">✕</button>
+      <button class="blocked-entry__remove" data-key="${key}"
+              aria-label="Eliminar bloqueos del ${dateStr}" title="Eliminar todos">✕</button>
     `;
 
-    entry.querySelector('.blocked-entry__remove').addEventListener('click', (e) => {
+    entry.querySelector('.blocked-entry__remove').addEventListener('click', e => {
       const k = e.currentTarget.dataset.key;
       delete savedBlocks[k];
       saveBlocksToStorage();
@@ -313,7 +310,8 @@ function toast(msg, type = 'success') {
   const el = document.createElement('div');
   el.className = `admin-toast${type === 'error' ? ' admin-toast--error' : ''}`;
   el.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       ${type === 'error'
         ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
         : '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'}

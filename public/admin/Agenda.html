@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda Mensual — Admin · Michel Yepiz Nails Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+
+  <style>
+    /* ══════════════════════════════════════════
+       AGENDA PAGE LAYOUT
+    ══════════════════════════════════════════ */
+    .agenda-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem 2rem;
+      height: calc(100vh - 64px);
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* ── Columna izquierda: Calendario ── */
+    .agenda-cal-wrap {
+      background: #fff;
+      border: 1px solid rgba(200,169,138,.18);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .agenda-cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .agenda-cal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 300;
+      color: #0a0a0a;
+      letter-spacing: .02em;
+      text-transform: capitalize;
+    }
+    .agenda-nav-btn {
+      background: none;
+      border: 1px solid rgba(200,169,138,.35);
+      color: #c8a98a;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .agenda-nav-btn:hover { background: #c8a98a; color: #fff; }
+
+    /* Días semana */
+    .agenda-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: .6rem;
+    }
+    .agenda-weekday {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .6rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(10,10,10,.3);
+      text-align: center;
+      padding: .3rem 0;
+    }
+
+    /* Grid de días */
+    .agenda-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      flex: 1;
+    }
+    .agenda-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .15s;
+      min-height: 52px;
+      position: relative;
+    }
+    .agenda-day:hover:not(.agenda-day--empty) {
+      background: rgba(200,169,138,.1);
+      border-color: rgba(200,169,138,.3);
+    }
+    .agenda-day--empty { cursor: default; }
+    .agenda-day--today {
+      background: rgba(200,169,138,.12);
+      border-color: rgba(200,169,138,.4);
+    }
+    .agenda-day--selected {
+      background: #c8a98a !important;
+      border-color: #c8a98a !important;
+    }
+    .agenda-day--selected .agenda-day__num { color: #fff !important; font-weight: 600; }
+    .agenda-day--selected .agenda-day__dot { background: rgba(255,255,255,.8); }
+    .agenda-day__num {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .75rem;
+      color: #0a0a0a;
+      line-height: 1;
+    }
+    .agenda-day--today:not(.agenda-day--selected) .agenda-day__num { color: #c8a98a; font-weight: 600; }
+    .agenda-day__dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #c8a98a;
+      margin-top: 4px;
+    }
+
+    /* ── Columna derecha: Lista del día ── */
+    .agenda-list-wrap {
+      background: #fff;
+      border: 1px solid rgba(200,169,138,.18);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .agenda-list-header {
+      padding: 1.25rem 1.5rem 1rem;
+      border-bottom: 1px solid rgba(200,169,138,.15);
+      flex-shrink: 0;
+    }
+    .agenda-list-fecha {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: #0a0a0a;
+      letter-spacing: .02em;
+      text-transform: capitalize;
+    }
+    .agenda-list-sub {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .6rem;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(10,10,10,.3);
+      margin-top: .3rem;
+    }
+    .agenda-list-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem 1.5rem;
+    }
+    .agenda-list-body::-webkit-scrollbar { width: 4px; }
+    .agenda-list-body::-webkit-scrollbar-track { background: transparent; }
+    .agenda-list-body::-webkit-scrollbar-thumb { background: rgba(200,169,138,.3); border-radius: 2px; }
+
+    .agenda-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: rgba(10,10,10,.3);
+      font-size: 1rem;
+    }
+    .agenda-empty__icon {
+      font-size: 1.5rem;
+      margin-bottom: .5rem;
+      opacity: .4;
+    }
+
+    /* Tarjeta de cita */
+    .agenda-card {
+      display: flex;
+      align-items: flex-start;
+      gap: .9rem;
+      padding: .85rem 1rem;
+      border: 1px solid rgba(200,169,138,.18);
+      border-radius: 8px;
+      background: #faf9f7;
+      margin-bottom: .55rem;
+      transition: box-shadow .2s;
+    }
+    .agenda-card:hover { box-shadow: 0 2px 12px rgba(200,169,138,.15); }
+    .agenda-card__hora {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #c8a98a;
+      min-width: 44px;
+      line-height: 1.2;
+    }
+    .agenda-card__hora span {
+      display: block;
+      font-family: 'Montserrat', sans-serif;
+      font-size: .55rem;
+      font-weight: 400;
+      color: rgba(10,10,10,.3);
+      letter-spacing: .04em;
+    }
+    .agenda-card__info { flex: 1; min-width: 0; }
+    .agenda-card__cliente {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .75rem;
+      font-weight: 500;
+      color: #0a0a0a;
+    }
+    .agenda-card__tel {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .62rem;
+      color: rgba(10,10,10,.4);
+      margin-top: .15rem;
+    }
+    .agenda-card__duracion {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .6rem;
+      color: rgba(10,10,10,.35);
+      margin-top: .2rem;
+    }
+    .agenda-card__badge {
+      font-family: 'Montserrat', sans-serif;
+      font-size: .55rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .2rem .55rem;
+      border-radius: 20px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .agenda-card__badge--confirmada { background: rgba(134,180,134,.15); color: #4a7c4a; }
+    .agenda-card__badge--completada { background: rgba(200,169,138,.15); color: #8a6a3a; }
+    .agenda-card__badge--pendiente  { background: rgba(180,160,120,.1);  color: #7a6040; }
+    .agenda-card__badge--cancelada  { background: rgba(217,112,112,.1);  color: #a04040; }
+
+    @media (max-width: 900px) {
+      .agenda-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: auto;
+      }
+      .agenda-cal-wrap { min-height: 420px; }
+      .agenda-list-wrap { min-height: 300px; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Panel de administración">
+    <div class="sidebar__brand">
+      <span class="sidebar__brand-mark">MYN</span>
+      <div>
+        <p class="sidebar__brand-name">Michel Yepiz</p>
+        <p class="sidebar__brand-sub">Panel de administración</p>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <p class="sidebar__nav-label">Gestión</p>
+      <ul role="list">
+        <li>
+          <a href="CitasDelDia.html" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Citas del día
+          </a>
+        </li>
+        <li>
+          <a href="Agenda.html" class="sidebar__link sidebar__link--active" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+            Agenda mensual
+          </a>
+        </li>
+        <li>
+          <a href="BloquearHorarios.html" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+            Bloquear horarios
+          </a>
+        </li>
+        <li>
+          <a href="Clientes.html" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Clientes
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Servicios
+          </a>
+        </li>
+      </ul>
+      <p class="sidebar__nav-label" style="margin-top:2rem;">Sitio</p>
+      <ul role="list">
+        <li>
+          <a href="../homepage.html" class="sidebar__link" target="_blank">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Ver sitio web
+            <span class="sidebar__ext" aria-hidden="true">↗</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__avatar" aria-hidden="true">MY</div>
+      <div class="sidebar__user">
+        <p class="sidebar__user-name">Michel Yepiz</p>
+        <p class="sidebar__user-role">Administradora</p>
+      </div>
+      <button class="sidebar__logout" aria-label="Cerrar sesión" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <button class="admin-topbar__menu" id="menuToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <div>
+          <h1 class="admin-topbar__title">Agenda mensual</h1>
+          <p class="admin-topbar__breadcrumb" id="topbarBreadcrumb">Administración · Todas las citas</p>
+        </div>
+      </div>
+      <div class="admin-topbar__right">
+        <span class="admin-badge" id="agendaBadge">Cargando…</span>
+      </div>
+    </header>
+
+    <!-- Contenido principal en dos columnas -->
+    <div class="agenda-layout">
+
+      <!-- Columna izquierda: Calendario -->
+      <div class="agenda-cal-wrap">
+        <div class="agenda-cal-header">
+          <button class="agenda-nav-btn" id="prevMonth" aria-label="Mes anterior">‹</button>
+          <p class="agenda-cal-title" id="monthLabel">—</p>
+          <button class="agenda-nav-btn" id="nextMonth" aria-label="Mes siguiente">›</button>
+        </div>
+        <div class="agenda-weekdays">
+          <span class="agenda-weekday">Lu</span>
+          <span class="agenda-weekday">Ma</span>
+          <span class="agenda-weekday">Mi</span>
+          <span class="agenda-weekday">Ju</span>
+          <span class="agenda-weekday">Vi</span>
+          <span class="agenda-weekday">Sá</span>
+          <span class="agenda-weekday">Do</span>
+        </div>
+        <div class="agenda-grid" id="agendaGrid"></div>
+      </div>
+
+      <!-- Columna derecha: Citas del día seleccionado -->
+      <div class="agenda-list-wrap">
+        <div class="agenda-list-header">
+          <p class="agenda-list-fecha" id="listFecha">Selecciona un día</p>
+          <p class="agenda-list-sub" id="listSub">Toca un día para ver sus citas</p>
+        </div>
+        <div class="agenda-list-body" id="listBody">
+          <div class="agenda-empty">
+            <div class="agenda-empty__icon">✦</div>
+            Selecciona un día del calendario
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="adminToast" aria-live="polite" aria-atomic="true"></div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="Agenda.js"></script>
+</body>
+</html>

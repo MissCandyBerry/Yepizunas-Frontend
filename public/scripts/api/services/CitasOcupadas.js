@@ -1,20 +1,22 @@
-// ✅ Después
+// ──────────────────────────────────────
+//  CitasOcupadas.js
+//  Importa authHeaders desde adminApi.js
+// ──────────────────────────────────────
+
+import { authHeaders } from '../adminApi.js';
+
 const API_URL = 'http://localhost:5212/api/Cita';
 
 export async function obtenerCitasOcupadas() {
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(API_URL, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        if (!response.ok) throw new Error('Error al obtener las citas');
-        const jsonResponse = await response.json();
-        return jsonResponse.data || [];
-    } catch (error) {
-        console.error("Error conectando al servidor:", error);
-        return [];
-    }
+  try {
+    const res = await fetch(API_URL, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Error al obtener las citas');
+    const json = await res.json();
+    return json.data || [];
+  } catch (error) {
+    console.error('Error conectando al servidor:', error);
+    return [];
+  }
 }
