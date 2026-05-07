@@ -1,15 +1,18 @@
-// public/scripts/api/services/CitasOcupadas.js
-const API_URL = 'https://localhost:7225/api/Cita'; 
+// ✅ Después
+const API_URL = 'http://localhost:5212/api/Cita';
 
 export async function obtenerCitasOcupadas() {
     try {
-        const response = await fetch(API_URL);
+        const token = localStorage.getItem('token');
+        const response = await fetch(API_URL, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         if (!response.ok) throw new Error('Error al obtener las citas');
-        
         const jsonResponse = await response.json();
-        
-        return jsonResponse.data || []; 
-        
+        return jsonResponse.data || [];
     } catch (error) {
         console.error("Error conectando al servidor:", error);
         return [];
