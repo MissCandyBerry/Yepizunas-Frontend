@@ -709,6 +709,22 @@
   margin: 0 auto 2rem;
 }
 
+/* Día completamente lleno — no clickeable */
+.cal-day--full {
+  color: #d5d0cb;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.cal-day--full::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: rgba(200, 169, 138, 0.08);
+  border: 1px solid rgba(200, 169, 138, 0.2);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .booking-modal__header,
