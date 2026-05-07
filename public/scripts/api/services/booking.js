@@ -6,6 +6,9 @@
 import { obtenerCitasOcupadas } from './CitasOcupadas.js';
 import { tokenVigente } from '../auth.js';
 
+// AGREGA SOLO ESTA VARIABLE PARA LA API:
+const API_BASE = 'http://localhost:5212';
+
 // booking.js
 
 function verificarSesion() {
@@ -89,7 +92,6 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Navegación entre pasos ─────────────
-// ── Navegación entre pasos ─────────────
 // Le agregamos "async" a la función para poder usar await con el fetch
 btnNext?.addEventListener('click', async () => {
   if (ui.step === 1 && !ui.service) { flashError('Selecciona un servicio para continuar.'); return; }
@@ -97,8 +99,7 @@ btnNext?.addEventListener('click', async () => {
   if (ui.step === 2 && !ui.time)    { flashError('Selecciona una hora.'); return; }
   
   if (ui.step === 3) { 
-      
-// 1. Armamos la caja EXACTAMENTE como la pide Swagger y C#
+      // 1. Armamos la caja EXACTAMENTE como la pide Swagger y C#
       const citaData = {
           fecha: fmtKey(ui.date),        
           horaInicio: ui.time + ":00",   
@@ -109,8 +110,8 @@ btnNext?.addEventListener('click', async () => {
       try {
           const token = localStorage.getItem('token');
 
-          // 2. Se la mandamos al mensajero (Backend)
-          const response = await fetch('https://localhost:7225/api/Cita', {
+          // 2. SOLO ESTA LINEA CAMBIA: la URL
+          const response = await fetch(`${API_BASE}/api/Cita`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
@@ -299,12 +300,8 @@ function renderTimeSlots() {
         // ---Comparamos con el Backend ---
         // Revisamos si en las citas del backend hay alguna que caiga en este día y a esta hora
         const estaOcupada = citasBackend.some(cita => {
-            // A veces el backend manda la fecha con una 'T' (ej. 2026-05-04T00:00:00), nos quedamos solo con la fecha
             const citaFecha = cita.fecha.split('T')[0]; 
-            
-            // La hora del backend viene con segundos (10:00:00), la cortamos a 5 letras para que sea "10:00"
             const citaHora = cita.horaInicio.substring(0, 5); 
-            
             return citaFecha === selectedDateIso && citaHora === s.time;
         });
         // ---------------------------------------------
@@ -394,15 +391,10 @@ async function cargarDatos() {
 }
 
 // ── Inicializar al cargar ──────────────
-// 1. El guardia de seguridad revisa el gafete ANTES de dejarlo pasar
 if (verificarSesion()) {
-    
-    // 2. Si sí tiene sesión activa, ahora sí cargamos las citas y mostramos la página
     cargarDatos();
     renderStep(1); 
-
 } else {
-    // 3. Si no tiene sesión, escondemos el contenedor principal 
     const overlay = document.getElementById('bookingOverlay');
     if (overlay) {
         overlay.style.display = 'none';
