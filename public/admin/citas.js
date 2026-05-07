@@ -230,12 +230,12 @@ function renderStats() {
 function abrirModal(id) {
   citaEditando = citas.find(c => c.id === id);
   if (!citaEditando) return;
-  $('modalCliente').textContent  = citaEditando.cliente;
-  $('modalHora').value           = citaEditando.hora;
-  $('modalEstado').value         = citaEditando.estado;
-  $('modalNotas').value          = '';
-  $('modalSub').textContent      = `${citaEditando.hora} · ${citaEditando.duracion}`;
-  $('modalOverlay').classList.add('visible');
+  $('citasModalCliente').textContent  = citaEditando.cliente;
+  $('citasModalHora').value           = citaEditando.hora;
+  $('citasModalEstado').value         = citaEditando.estado;
+  $('citasModalNotas').value          = '';
+  $('citasModalSub').textContent      = `${citaEditando.hora} · ${citaEditando.duracion}`;
+  $('citasModalOverlay').classList.add('visible');
 }
 
 function cerrarModal() {
@@ -308,10 +308,10 @@ $('citasTableBody').addEventListener('click', async e => {
   }
 });
 
-$('modalClose').addEventListener('click', cerrarModal);
-$('modalCancelBtn').addEventListener('click', cerrarModal);
-$('modalSaveBtn').addEventListener('click', guardarModal);
-$('modalOverlay').addEventListener('click', e => { if (e.target === $('modalOverlay')) cerrarModal(); });
+$('citasModalClose').addEventListener('click', cerrarModal);
+$('citasModalCancelBtn').addEventListener('click', cerrarModal);
+$('citasModalSaveBtn').addEventListener('click', guardarModal);
+$('citasModalOverlay').addEventListener('click', e => { if (e.target === $('citasModalOverlay')) cerrarModal(); });
 
 $('menuToggle').addEventListener('click', () => {
   const open = $('sidebar').classList.toggle('open');

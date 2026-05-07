@@ -808,3 +808,152 @@
 }
 /* Ocultar empty state por defecto */
 .citas-empty[hidden] { display: none !important; }
+
+/* ── Modal Overlay Citas ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: #fff;
+  border: 1px solid rgba(200,169,138,.2);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease both;
+  border-radius: 8px;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.75rem 2rem 1.25rem;
+  border-bottom: 1px solid rgba(200,169,138,.2);
+}
+
+.modal__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: #0a0a0a;
+}
+
+.modal__sub {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: rgba(10,10,10,0.3);
+  margin-top: 0.25rem;
+}
+
+.modal__close {
+  background: none;
+  border: 1px solid transparent;
+  color: rgba(10,10,10,0.3);
+  cursor: pointer;
+  padding: 0.3rem;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all 0.3s;
+}
+
+.modal__close:hover { border-color: rgba(200,169,138,.3); color: #0a0a0a; }
+
+.modal__body {
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modal__label {
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(200,169,138,0.7);
+}
+
+.modal__value {
+  font-size: 0.8rem;
+  color: #0a0a0a;
+}
+
+.modal__input {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.72rem;
+  color: #0a0a0a;
+  background: #f9f7f5;
+  border: 1px solid rgba(200,169,138,.2);
+  padding: 0.65rem 0.9rem;
+  outline: none;
+  transition: border-color 0.3s;
+  width: 100%;
+}
+
+.modal__input:focus { border-color: #c8a98a; }
+.modal__input--textarea { resize: vertical; min-height: 80px; }
+
+.modal__footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.25rem 2rem 1.75rem;
+  border-top: 1px solid rgba(200,169,138,.2);
+}
+
+.modal-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.5rem;
+  border: 1px solid rgba(200,169,138,.3);
+  background: transparent;
+  color: rgba(10,10,10,0.5);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.modal-btn:hover { border-color: #0a0a0a; color: #0a0a0a; }
+
+.modal-btn--primary {
+  background: #c8a98a;
+  border-color: #c8a98a;
+  color: #0a0a0a;
+  margin-left: auto;
+}
+
+.modal-btn--primary:hover { background: #b89973; border-color: #b89973; }
