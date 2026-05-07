@@ -1,0 +1,810 @@
+/* ════════════════════════════
+   CITAS DEL DÍA — estilos propios
+════════════════════════════ */
+
+/* Layout de una sola columna full-width */
+.citas-content {
+  padding: 2.5rem 2.5rem 3rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Barra de filtros ── */
+.citas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.citas-tabs {
+  display: flex;
+  border: 1px solid var(--color-border);
+}
+
+.citas-tab {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--color-border);
+  color: rgba(10,10,10,0.4);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.citas-tab:last-child { border-right: none; }
+.citas-tab:hover { color: var(--color-black); background: var(--color-accent-dim); }
+.citas-tab--active {
+  background: var(--color-accent) !important;
+  color: var(--color-black) !important;
+}
+
+.citas-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-border);
+  padding: 0.55rem 1rem;
+  background: var(--color-white);
+}
+
+.citas-search svg {
+  width: 13px;
+  height: 13px;
+  color: rgba(200,169,138,0.5);
+  flex-shrink: 0;
+}
+
+.citas-search input {
+  border: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  color: var(--color-black);
+  background: transparent;
+  width: 180px;
+  letter-spacing: 0.05em;
+}
+.citas-search input::placeholder { color: rgba(10,10,10,0.25); }
+
+/* ── Resumen rápido ── */
+.citas-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+}
+
+.citas-stat {
+  background: var(--color-white);
+  padding: 1.25rem 1.5rem;
+}
+
+.citas-stat__label {
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(200,169,138,0.55);
+  margin-bottom: 0.5rem;
+}
+
+.citas-stat__value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--color-black);
+  line-height: 1;
+}
+
+.citas-stat__sub {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: rgba(10,10,10,0.3);
+  margin-top: 0.35rem;
+}
+
+/* ── Tabla de citas ── */
+.citas-table-wrap {
+  border: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.citas-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.citas-table thead tr {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+.citas-table th {
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(200,169,138,0.55);
+  padding: 0.85rem 1.25rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.citas-table tbody tr {
+  border-bottom: 1px solid var(--color-border-soft);
+  transition: background-color var(--transition);
+  animation: fadeIn 0.3s ease both;
+}
+
+.citas-table tbody tr:last-child { border-bottom: none; }
+.citas-table tbody tr:hover { background: var(--color-surface-2); }
+
+.citas-table td {
+  padding: 1.1rem 1.25rem;
+  font-size: 0.72rem;
+  color: var(--color-black);
+  vertical-align: middle;
+}
+
+/* Hora */
+.cita-hora {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-black);
+  white-space: nowrap;
+}
+
+/* Cliente */
+.cita-cliente__nombre {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-black);
+  letter-spacing: 0.04em;
+}
+.cita-cliente__tel {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: rgba(10,10,10,0.35);
+  margin-top: 0.2rem;
+}
+
+/* Servicio */
+.cita-servicio {
+  font-size: 0.68rem;
+  color: rgba(10,10,10,0.65);
+  letter-spacing: 0.04em;
+}
+
+/* Duración */
+.cita-duracion {
+  font-size: 0.65rem;
+  color: rgba(10,10,10,0.4);
+  white-space: nowrap;
+}
+
+/* Estado */
+.cita-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  white-space: nowrap;
+}
+
+.cita-status::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cita-status--pendiente {
+  background: rgba(200,169,138,0.12);
+  color: #a07f5f;
+  border: 1px solid rgba(200,169,138,0.25);
+}
+.cita-status--pendiente::before { background: var(--color-accent); }
+
+.cita-status--confirmada {
+  background: rgba(100,170,120,0.1);
+  color: #3d7a57;
+  border: 1px solid rgba(100,170,120,0.2);
+}
+.cita-status--confirmada::before { background: #64aa78; }
+
+.cita-status--completada {
+  background: rgba(10,10,10,0.04);
+  color: rgba(10,10,10,0.3);
+  border: 1px solid rgba(10,10,10,0.06);
+}
+.cita-status--completada::before { background: rgba(10,10,10,0.2); }
+
+.cita-status--cancelada {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid rgba(217,112,112,0.2);
+}
+.cita-status--cancelada::before { background: var(--color-danger); }
+
+/* Acciones */
+.cita-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cita-btn {
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: rgba(10,10,10,0.5);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.cita-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-black);
+  background: var(--color-accent-dim);
+}
+
+.cita-btn--danger:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+/* ── Empty state ── */
+.citas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 5rem 3rem;
+  border: 1px dashed var(--color-border);
+}
+
+.citas-empty__icon {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  color: rgba(200,169,138,0.15);
+}
+
+.citas-empty__title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: rgba(10,10,10,0.3);
+}
+
+.citas-empty__sub {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: rgba(10,10,10,0.2);
+}
+
+/* ── Modal de detalle ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,10,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  width: 100%;
+  max-width: 480px;
+  animation: slideUp 0.3s ease both;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal__body {
+  overflow-y: auto;
+  flex: 1;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.75rem 2rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal__title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: var(--color-black);
+}
+
+.modal__sub {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: rgba(10,10,10,0.3);
+  margin-top: 0.25rem;
+}
+
+.modal__close {
+  background: none;
+  border: 1px solid transparent;
+  color: rgba(10,10,10,0.3);
+  cursor: pointer;
+  padding: 0.3rem;
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.modal__close:hover {
+  border-color: var(--color-border);
+  color: var(--color-black);
+}
+
+.modal__body {
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modal-field__label {
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(200,169,138,0.6);
+}
+
+.modal-field__value {
+  font-size: 0.8rem;
+  color: var(--color-black);
+  letter-spacing: 0.03em;
+}
+
+.modal-field select,
+.modal-field input,
+.modal-field textarea {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--color-black);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  padding: 0.65rem 0.9rem;
+  outline: none;
+  transition: border-color var(--transition);
+  width: 100%;
+  letter-spacing: 0.04em;
+}
+.modal-field select:focus,
+.modal-field input:focus,
+.modal-field textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.modal-field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal__footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.25rem 2rem 1.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.modal-btn {
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.5rem;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: rgba(10,10,10,0.5);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-btn:hover { border-color: var(--color-black); color: var(--color-black); }
+
+.modal-btn--primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-black);
+  margin-left: auto;
+}
+.modal-btn--primary:hover { background: #b89973; border-color: #b89973; color: var(--color-black); }
+
+/* ══════════════════════════════════════════
+   AGENDA MENSUAL — DRAWER LATERAL DERECHO
+══════════════════════════════════════════ */
+
+/* ── Overlay ── */
+.agenda-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,10,.45);
+  backdrop-filter: blur(3px);
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+.agenda-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Drawer lateral
+   • Se desliza desde la derecha
+   • display:flex + flex-direction:column para que .agenda-list
+     tome el espacio restante y sea scrolleable
+   • overflow:hidden en el drawer → el scroll ocurre solo en .agenda-list
+─────────────────────────────── */
+.agenda-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(640px, 100vw);
+  height: 100vh;
+  background: #faf9f7;
+  z-index: 301;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;        /* ← cambia overflow:hidden por overflow-y:auto */
+  transform: translateX(100%);
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  box-shadow: -8px 0 40px rgba(0,0,0,.12);
+}
+.agenda-drawer.open {
+  transform: translateX(0);              /* visible */
+}
+.agenda-drawer * { box-sizing: border-box; }
+
+/* ── Cabecera ── */
+.agenda-drawer__header {
+  padding: 1.1rem 1.5rem .9rem;
+  border-bottom: 1px solid rgba(200,169,138,.2);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.agenda-drawer__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: #0a0a0a;
+  letter-spacing: .02em;
+  line-height: 1.2;
+}
+.agenda-drawer__sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(10,10,10,.35);
+  margin-top: .2rem;
+}
+.agenda-drawer__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(10,10,10,.4);
+  font-size: 1.1rem;
+  padding: .2rem;
+  line-height: 1;
+  transition: color .2s;
+}
+.agenda-drawer__close:hover { color: #0a0a0a; }
+
+/* ── Navegación de mes
+   Flexbox con space-between garantiza que ambas flechas
+   siempre sean visibles sin posicionamiento absoluto.
+─────────────────────────────── */
+.agenda-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .5rem 1.5rem .3rem;
+  flex-shrink: 0;
+  gap: .5rem;
+}
+.agenda-nav__btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid rgba(200,169,138,.3);
+  color: #c8a98a;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s, color .2s;
+}
+.agenda-nav__btn:hover {
+  background: #c8a98a;
+  color: #fff;
+}
+.agenda-nav__month {
+  flex: 1;
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: #0a0a0a;
+  letter-spacing: .04em;
+  text-transform: capitalize;
+}
+
+/* ── Calendario (zona fija, no scrollea) ── */
+.agenda-calendar {
+  padding: 0 1.5rem .5rem;
+  flex-shrink: 0;                        /* nunca se encoge */
+}
+
+.agenda-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: .25rem;
+}
+.agenda-weekday {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(10,10,10,.3);
+  text-align: center;
+  padding: .3rem 0;
+}
+
+.agenda-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+/* Celda de día */
+.agenda-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all .18s ease;
+}
+.agenda-day:hover:not(.agenda-day--empty) {
+  background: rgba(200,169,138,.1);
+  border-color: rgba(200,169,138,.25);
+}
+.agenda-day--empty { cursor: default; }
+
+.agenda-day__num {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .72rem;
+  color: #0a0a0a;
+  line-height: 1;
+}
+
+/* Hoy */
+.agenda-day--today {
+  background: rgba(200,169,138,.15);
+  border-color: rgba(200,169,138,.4);
+}
+.agenda-day--today .agenda-day__num {
+  color: #c8a98a;
+  font-weight: 700;
+}
+
+/* Seleccionado */
+.agenda-day--selected {
+  background: #c8a98a !important;
+  border-color: #c8a98a !important;
+}
+.agenda-day--selected .agenda-day__num { color: #fff; }
+
+/* Día con citas */
+.agenda-day--has-citas .agenda-day__num { font-weight: 600; }
+
+/* Dot de citas */
+.agenda-day__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #c8a98a;
+  margin-top: 3px;
+}
+.agenda-day--selected .agenda-day__dot { background: rgba(255,255,255,.7); }
+
+/* ── Lista de citas (scrolleable)
+   flex:1 hace que ocupe TODO el espacio sobrante del drawer.
+   overflow-y:auto activa el scroll cuando el contenido excede.
+─────────────────────────────── */
+.agenda-list {
+  padding: .75rem 1.5rem 2rem;
+  border-top: 1px solid rgba(200,169,138,.15);
+  margin-top: .4rem;
+}
+/* Scrollbar delgada */
+.agenda-list::-webkit-scrollbar { width: 4px; }
+.agenda-list::-webkit-scrollbar-track { background: transparent; }
+.agenda-list::-webkit-scrollbar-thumb {
+  background: rgba(200,169,138,.3);
+  border-radius: 2px;
+}
+
+.agenda-list__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(10,10,10,.35);
+  margin-bottom: 1rem;
+}
+.agenda-list__empty {
+  text-align: center;
+  padding: 2rem 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: rgba(10,10,10,.3);
+  font-style: italic;
+}
+
+/* ── Tarjeta de cita ── */
+.agenda-cita-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: .9rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(200,169,138,.18);
+  background: #fff;
+  margin-bottom: .6rem;
+  transition: box-shadow .2s ease;
+}
+.agenda-cita-card:hover {
+  box-shadow: 0 2px 12px rgba(200,169,138,.15);
+}
+
+.agenda-cita-card__hora {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #c8a98a;
+  min-width: 42px;
+  line-height: 1.2;
+}
+.agenda-cita-card__hora span {
+  display: block;
+  font-family: 'Montserrat', sans-serif;
+  font-size: .58rem;
+  font-weight: 400;
+  color: rgba(10,10,10,.3);
+  letter-spacing: .05em;
+}
+
+.agenda-cita-card__info {
+  flex: 1;
+  min-width: 0;
+}
+.agenda-cita-card__cliente {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .75rem;
+  font-weight: 500;
+  color: #0a0a0a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agenda-cita-card__duracion {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .62rem;
+  color: rgba(10,10,10,.4);
+  margin-top: .2rem;
+}
+
+.agenda-cita-card__badge {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .2rem .55rem;
+  border-radius: 20px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.agenda-cita-card__badge--confirmada { background: rgba(134,180,134,.15); color: #4a7c4a; }
+.agenda-cita-card__badge--completada { background: rgba(200,169,138,.15); color: #8a6a3a; }
+.agenda-cita-card__badge--pendiente  { background: rgba(180,160,120,.10); color: #7a6040; }
+.agenda-cita-card__badge--cancelada  { background: rgba(217,112,112,.10); color: #a04040; }
+
+/* ── Estado de carga ── */
+.agenda-loading {
+  text-align: center;
+  padding: 3rem 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  color: rgba(10,10,10,.3);
+  text-transform: uppercase;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  /* Tabla */
+  .citas-content { padding: 1.5rem 1.25rem 2rem; }
+  .citas-toolbar { flex-direction: column; align-items: stretch; }
+  .citas-search input { width: 100%; }
+  .citas-table th:nth-child(4),
+  .citas-table td:nth-child(4) { display: none; }
+
+  /* Drawer ocupa pantalla completa en móvil */
+  .agenda-drawer { width: 100vw; }
+  .agenda-nav { padding: .5rem 1rem .25rem; }
+  .agenda-calendar { padding: 0 1rem .5rem; }
+  .agenda-list { padding: .75rem 1rem 1.5rem; }
+}
+/* Ocultar empty state por defecto */
+.citas-empty[hidden] { display: none !important; }
