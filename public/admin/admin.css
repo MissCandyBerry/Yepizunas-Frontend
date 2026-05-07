@@ -49,6 +49,14 @@ body {
   min-height: 100vh;
 }
 
+/* Logo en sidebar brand */
+.sidebar__brand-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 /* ════════════════════════════
    SIDEBAR
 ════════════════════════════ */
@@ -915,6 +923,8 @@ body {
     justify-content: center;
   }
 }
+
+
   /* ════════════════════════════
    SERVICES / CRUD MODULE
 ════════════════════════════ */
