@@ -1,9 +1,3 @@
-/* ===========================
-   Michel Yepiz Nails Studio
-   UI · Servicios Admin
-   /scripts/ui/Servicios.js
-   =========================== */
-
 (function () {
   'use strict';
 
@@ -24,7 +18,6 @@
   const elErrorMsg  = $('#errorMsg');
 
   const elSearch   = $('#searchInput');
-  const elFiltEst  = $('#filterEstado');
 
   // Modal form
   const elModalForm   = $('#modalForm');
@@ -157,22 +150,18 @@
     `).join('');
   }
 
-  // ── Carga / búsqueda — siempre desde el servidor ─────────
-  // Los parámetros de filtro se mandan al backend como query params.
-  // El front NO filtra datos en memoria.
+  // ── Carga / búsqueda ─────────────────────────────────────
   async function cargarServicios() {
     showState('loading');
 
     const params = new URLSearchParams();
     const txt = elSearch.value.trim();
-    const est = elFiltEst.value;
 
     if (txt) params.set('search', txt);
-    if (est) params.set('activo', est === 'activo' ? 'true' : 'false');
 
     try {
-      // GET /api/servicios  ó  /api/servicios?search=x&activo=true
       const lista = await getServicios(params.toString());
+
       renderTabla(lista);
     } catch (err) {
       showState('error');
@@ -409,8 +398,6 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(cargarServicios, 350);
   });
-
-  elFiltEst?.addEventListener('change', cargarServicios);
 
   // ── Reintentar ────────────────────────────────────────────
   $('#btnRetry')?.addEventListener('click', cargarServicios);

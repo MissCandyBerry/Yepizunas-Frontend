@@ -1,4 +1,4 @@
-const API_BASE = 'https://localhost:7225';
+const API_BASE = 'http://localhost:5212';
 
 // ── Sanitización básica ──────────────────────────────────
 function sanitize(str) {
@@ -90,9 +90,12 @@ export async function loginUsuario(email, password) {
   localStorage.setItem('rol', data.datos?.rol || '');
   if (data.datos?.nombre) {
     localStorage.setItem('nombre', data.datos.nombre);
-    // Guardamos el ID. Ponemos las dos opciones (idUsuario o id) S
-    localStorage.setItem('idCliente', data.datos.idCliente);
   }
+
+  // 👇 AGREGAR ESTO — guarda el id para usarlo al agendar
+if (data.datos?.id || data.datos?.idCliente || data.datos?.idUsuario) {
+  localStorage.setItem('idCliente', data.datos.id ?? data.datos.idCliente ?? data.datos.idUsuario);
+}
   return data;
 }
 

@@ -6,6 +6,9 @@
 import { obtenerCitasOcupadas } from './CitasOcupadas.js';
 import { tokenVigente } from '../auth.js';
 
+// AGREGA SOLO ESTA VARIABLE PARA LA API:
+const API_BASE = 'http://localhost:5212';
+
 // booking.js
 
 function verificarSesion() {
@@ -89,7 +92,6 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Navegación entre pasos ─────────────
-// ── Navegación entre pasos ─────────────
 // Le agregamos "async" a la función para poder usar await con el fetch
 btnNext?.addEventListener('click', async () => {
   if (ui.step === 1 && !ui.service) { flashError('Selecciona un servicio para continuar.'); return; }
@@ -97,8 +99,7 @@ btnNext?.addEventListener('click', async () => {
   if (ui.step === 2 && !ui.time)    { flashError('Selecciona una hora.'); return; }
   
   if (ui.step === 3) { 
-      
-// 1. Armamos la caja EXACTAMENTE como la pide Swagger y C#
+      // 1. Armamos la caja EXACTAMENTE como la pide Swagger y C#
       const citaData = {
           fecha: fmtKey(ui.date),        
           horaInicio: ui.time + ":00",   
@@ -106,11 +107,13 @@ btnNext?.addEventListener('click', async () => {
           idCliente: parseInt(localStorage.getItem('idCliente'))        
       };
 
+      console.log("Enviando al backend:", JSON.stringify(citaData)); // 👈 agregar esto
+
       try {
           const token = localStorage.getItem('token');
 
-          // 2. Se la mandamos al mensajero (Backend)
-          const response = await fetch('https://localhost:7225/api/Cita', {
+          // 2. SOLO ESTA LINEA CAMBIA: la URL
+          const response = await fetch(`${API_BASE}/api/Cita`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
@@ -203,6 +206,18 @@ const DOW_STATUS = ['closed','available','available','partial','available','avai
 let calYear, calMonth;
 
 function renderCalendar() {
+
+  // Si las citas aún no cargaron, esperar y reintentar
+  if (citasBackend === null) {
+    document.getElementById('timePaneContent').innerHTML = `
+      <div class="time-pane__placeholder">
+        <span class="time-pane__placeholder-icon">⏳</span>
+        <p class="time-pane__placeholder-text">Cargando disponibilidad...</p>
+      </div>`;
+    setTimeout(renderCalendar, 500);
+    return;
+  }
+
   const today = new Date();
   if (calYear === undefined) { calYear = today.getFullYear(); calMonth = today.getMonth(); }
 
@@ -241,17 +256,32 @@ function buildMonth() {
     const dow     = date.getDay();
     const isPast  = date < today;
     const isToday = date.getTime() === today.getTime();
-    const status  = DOW_STATUS[dow];
     const key     = fmtKey(date);
     const isSel   = ui.date && fmtKey(ui.date) === key;
 
+    // Estado base del día de la semana (0=Dom cerrado, etc.)
+    const dowStatus = DOW_STATUS[dow]; // 'closed', 'available', 'partial'
+
+    // Estado real según citas del backend
+    let status = dowStatus;
+    if (dowStatus !== 'closed') {
+      if (isDiaLleno(key)) {
+        status = 'full';        // sin disponibilidad
+      } else if (isDiaParcial(key)) {
+        status = 'partial';     // algunos slots ocupados
+      }
+    }
+
     let cls = 'cal-day';
-    if (isPast)                   cls += ' cal-day--past';
+    if (isPast)               cls += ' cal-day--past';
     else if (status === 'closed') cls += ' cal-day--closed';
+    else if (status === 'full')   cls += ' cal-day--full';
     else                          cls += ` cal-day--${status}`;
+
     if (isToday) cls += ' cal-day--today';
     if (isSel)   cls += ' cal-day--selected';
 
+    // No se puede clickear si es pasado, cerrado, o lleno
     const clickable = !isPast && status !== 'closed' && status !== 'full';
     html += `<div class="${cls}" ${clickable ? `data-key="${key}" role="button" tabindex="0"` : ''}>${d}</div>`;
   }
@@ -276,39 +306,38 @@ function buildMonth() {
 function renderTimeSlots() {
   const pane = document.getElementById('timePaneContent');
   if (!pane) return;
-
-  if (!ui.date) {
+ if (!ui.date) {
     pane.innerHTML = `
       <div class="time-pane__placeholder">
-        <span class="time-pane__placeholder-icon">📅</span>
+        <span class="time-pane__placeholder-icon">🗓</span>
         <p class="time-pane__placeholder-text">Selecciona una fecha en el calendario</p>
       </div>`;
     return;
   }
 
+  const selectedDateIso = fmtKey(ui.date);
+  const esSabado = ui.date.getDay() === 6;
+
+  // Filtrar slots según el día
+  const slotsDelDia = MOCK_SLOTS.filter(s => {
+    if (esSabado) {
+      // Sábado: solo hasta las 14:00 (horario hasta 15:00, última cita a las 14:00)
+      return s.time <= '14:00';
+    }
+    return true; // Lunes-Viernes: todos los slots
+  });
+
   const dateStr = ui.date.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
-  
-  // Convertimos la fecha clickeada a formato "YYYY-MM-DD" para compararla
-  const selectedDateIso = fmtKey(ui.date); 
 
   pane.innerHTML = `
     <p class="time-pane__date" style="text-transform:capitalize">${dateStr}</p>
     <div class="time-slots" id="timeSlotsGrid">
-      ${MOCK_SLOTS.map(s => {
-        
-        // ---Comparamos con el Backend ---
-        // Revisamos si en las citas del backend hay alguna que caiga en este día y a esta hora
+      ${slotsDelDia.map(s => {
         const estaOcupada = citasBackend.some(cita => {
-            // A veces el backend manda la fecha con una 'T' (ej. 2026-05-04T00:00:00), nos quedamos solo con la fecha
-            const citaFecha = cita.fecha.split('T')[0]; 
-            
-            // La hora del backend viene con segundos (10:00:00), la cortamos a 5 letras para que sea "10:00"
-            const citaHora = cita.horaInicio.substring(0, 5); 
-            
-            return citaFecha === selectedDateIso && citaHora === s.time;
+          const citaFecha = cita.fecha.split('T')[0];
+          const citaHora  = cita.horaInicio.substring(0, 5);
+          return citaFecha === selectedDateIso && citaHora === s.time;
         });
-        // ---------------------------------------------
-
         return `
         <div class="time-slot ${estaOcupada ? 'time-slot--busy' : ''} ${ui.time === s.time ? 'selected' : ''}"
             ${!estaOcupada ? `data-time="${s.time}" role="button" tabindex="0"` : 'aria-disabled="true"'}>
@@ -384,27 +413,48 @@ function clearError() {
   if (el) { el.textContent = ''; el.style.display = 'none'; }
 }
 
-// Variable global para guardar lo que llegue del backend
-let citasBackend = []; 
+// Variable global para guardar citas del backend
+let citasBackend = null;  // null = cargando, [] = cargó sin citas
+
+
+
+// ── Helpers para consultar disponibilidad ──────────────
+/**
+ * Devuelve los slots ocupados para una fecha dada (formato 'YYYY-MM-DD')
+ */
+function getSlotsOcupadosPorFecha(fechaIso) {
+  return citasBackend
+    .filter(cita => cita.fecha.split('T')[0] === fechaIso)
+    .map(cita => cita.horaInicio.substring(0, 5));
+}
+
+/**
+ * Devuelve true si TODOS los slots del día están ocupados
+ */
+function isDiaLleno(fechaIso) {
+  const ocupados = getSlotsOcupadosPorFecha(fechaIso);
+  return ocupados.length >= MOCK_SLOTS.length;
+}
+
+/**
+ * Devuelve true si el día tiene AL MENOS UNA cita (pero no está lleno)
+ */
+function isDiaParcial(fechaIso) {
+  const ocupados = getSlotsOcupadosPorFecha(fechaIso);
+  return ocupados.length > 0 && ocupados.length < MOCK_SLOTS.length;
+}
 
 async function cargarDatos() {
-    console.log("Cargando citas reales...");
-    citasBackend = await obtenerCitasOcupadas();
-    console.log("¡Citas listas para usar!", citasBackend);
+  console.log("Cargando citas...");
+  citasBackend = await obtenerCitasOcupadas();
+  console.log("¡Citas listas!", citasBackend);
 }
 
 // ── Inicializar al cargar ──────────────
-// 1. El guardia de seguridad revisa el gafete ANTES de dejarlo pasar
 if (verificarSesion()) {
-    
-    // 2. Si sí tiene sesión activa, ahora sí cargamos las citas y mostramos la página
-    cargarDatos();
-    renderStep(1); 
-
+  renderStep(1);        // Paso 1 aparece inmediatamente
+  cargarDatos();        // Citas se cargan en paralelo (sin await)
 } else {
-    // 3. Si no tiene sesión, escondemos el contenedor principal 
-    const overlay = document.getElementById('bookingOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
+  const overlay = document.getElementById('bookingOverlay');
+  if (overlay) overlay.style.display = 'none';
 }
