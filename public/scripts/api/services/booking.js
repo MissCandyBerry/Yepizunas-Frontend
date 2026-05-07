@@ -32,15 +32,8 @@ function verificarSesion() {
     return true;
 }
 
-// ── Servicios (catálogo estático) ──────
-const SERVICES = [
-  { id: 1, name: 'Manicure Clásico',  duration: '1 hora' },
-  { id: 2, name: 'Uñas Acrílicas',    duration: '1 hora' },
-  { id: 3, name: 'Gel Profesional',   duration: '1 hora' },
-  { id: 4, name: 'Nail Art',          duration: '1 hora' },
-  { id: 5, name: 'Pedicure Spa',      duration: '1 hora' },
-  { id: 6, name: 'Retiro y Relleno',  duration: '1 hora' },
-];
+// ── Servicios (desde el API) ──────────
+let SERVICES = [];  // Se llena al iniciar desde el backend
 
 // ── Horarios mock (UI demo) ────────────
 const MOCK_SLOTS = [
@@ -168,22 +161,48 @@ function renderStep(n) {
   if (n === 3) renderSummary();
 }
 
-// ── PASO 1: Servicios ──────────────────
+// ── PASO 1: Servicios con carrusel ─────
+const PAGE_SIZE = 6;
+let currentPage = 0;
+
 function renderServices() {
   const grid = document.getElementById('servicesGrid');
   if (!grid) return;
 
-  grid.innerHTML = SERVICES.map((s, i) => `
+  if (!SERVICES.length) {
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#999;padding:2rem">Cargando servicios…</p>';
+    return;
+  }
+
+  const totalPages = Math.ceil(SERVICES.length / PAGE_SIZE);
+  const start = currentPage * PAGE_SIZE;
+  const pageItems = SERVICES.slice(start, start + PAGE_SIZE);
+
+  const cardsHtml = pageItems.map((s, i) => `
     <div class="service-option ${ui.service?.id === s.id ? 'selected' : ''}"
          data-id="${s.id}" role="button" tabindex="0">
       <div class="service-option__check">
         <span class="service-option__check-icon">✓</span>
       </div>
-      <p class="service-option__num">0${i + 1}</p>
+      <p class="service-option__num">${String(start + i + 1).padStart(2, '0')}</p>
       <h3 class="service-option__name">${s.name}</h3>
       <p class="service-option__duration">${s.duration}</p>
     </div>
   `).join('');
+
+  const navHtml = totalPages > 1 ? `
+    <div class="srv-carousel-nav" style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:1rem;padding:1rem 0 0.25rem;">
+      <button class="srv-carousel-btn" id="srvPrev" aria-label="Anterior"
+        style="background:none;border:1px solid #d4c9c0;border-radius:50%;width:2rem;height:2rem;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;${currentPage === 0 ? 'opacity:.35;pointer-events:none' : ''}"
+      >‹</button>
+      <span style="font-size:0.75rem;color:#999;letter-spacing:.08em">${currentPage + 1} / ${totalPages}</span>
+      <button class="srv-carousel-btn" id="srvNext" aria-label="Siguiente"
+        style="background:none;border:1px solid #d4c9c0;border-radius:50%;width:2rem;height:2rem;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;${currentPage === totalPages - 1 ? 'opacity:.35;pointer-events:none' : ''}"
+      >›</button>
+    </div>
+  ` : '';
+
+  grid.innerHTML = cardsHtml + navHtml;
 
   grid.querySelectorAll('.service-option').forEach(card => {
     const pick = () => {
@@ -194,6 +213,13 @@ function renderServices() {
     };
     card.addEventListener('click', pick);
     card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pick(); });
+  });
+
+  document.getElementById('srvPrev')?.addEventListener('click', () => {
+    if (currentPage > 0) { currentPage--; renderServices(); }
+  });
+  document.getElementById('srvNext')?.addEventListener('click', () => {
+    if (currentPage < totalPages - 1) { currentPage++; renderServices(); }
   });
 }
 
@@ -444,16 +470,35 @@ function isDiaParcial(fechaIso) {
   return ocupados.length > 0 && ocupados.length < MOCK_SLOTS.length;
 }
 
+async function cargarServicios() {
+  try {
+    const res  = await fetch(`${API_BASE}/api/servicios`);
+    const body = await res.json();
+    const lista = body?.data ?? body ?? [];
+    SERVICES = lista.map(s => ({
+      id:       s.idServicio,
+      name:     s.nombreServicio,
+      duration: s.duracionMinutos ? `${s.duracionMinutos} min` : '—',
+    }));
+  } catch (err) {
+    console.error('Error cargando servicios:', err);
+    SERVICES = [];
+  }
+  // Re-render paso 1 con los servicios ya cargados
+  if (ui.step === 1) renderServices();
+}
+
 async function cargarDatos() {
-  console.log("Cargando citas...");
+  console.log('Cargando datos...');
   citasBackend = await obtenerCitasOcupadas();
-  console.log("¡Citas listas!", citasBackend);
+  console.log('Citas listas:', citasBackend);
 }
 
 // ── Inicializar al cargar ──────────────
 if (verificarSesion()) {
-  renderStep(1);        // Paso 1 aparece inmediatamente
-  cargarDatos();        // Citas se cargan en paralelo (sin await)
+  renderStep(1);    // Muestra paso 1 inmediatamente (con spinner de carga)
+  cargarServicios(); // Carga servicios del API en paralelo
+  cargarDatos();    // Carga citas ocupadas en paralelo
 } else {
   const overlay = document.getElementById('bookingOverlay');
   if (overlay) overlay.style.display = 'none';

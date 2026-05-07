@@ -92,7 +92,6 @@ export async function loginUsuario(email, password) {
     localStorage.setItem('nombre', data.datos.nombre);
   }
 
-  // 👇 AGREGAR ESTO — guarda el id para usarlo al agendar
 if (data.datos?.id || data.datos?.idCliente || data.datos?.idUsuario) {
   localStorage.setItem('idCliente', data.datos.id ?? data.datos.idCliente ?? data.datos.idUsuario);
 }
