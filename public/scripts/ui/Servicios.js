@@ -1,3 +1,9 @@
+/* ===========================
+   Michel Yepiz Nails Studio
+   UI · Servicios Admin
+   /scripts/ui/Servicios.js
+   =========================== */
+
 (function () {
   'use strict';
 
@@ -174,22 +180,39 @@
     try {
       const s = await getServicioById(id);
       servicioActivo = s;
-
-      elDetBody.innerHTML = `
-        <div class="detail-row"><span class="detail-label">ID</span>              <span class="detail-value">${s.idServicio}</span></div>
-        <div class="detail-row"><span class="detail-label">Nombre</span>          <span class="detail-value">${escapeHtml(s.nombreServicio)}</span></div>
-        <div class="detail-row"><span class="detail-label">Descripción</span>     <span class="detail-value">${escapeHtml(s.descripcion)}</span></div>
-        <div class="detail-row"><span class="detail-label">Duración</span>        <span class="detail-value">${s.duracionMinutos} minutos</span></div>
-        <div class="detail-row"><span class="detail-label">Precio base</span>     <span class="detail-value">${formatPrecio(s.precioBase)} MXN</span></div>
-        <div class="detail-row"><span class="detail-label">Estado</span>          <span class="detail-value srv-status srv-status--${s.activo ? 'activo' : 'inactivo'}">${s.activo ? 'Activo' : 'Inactivo'}</span></div>
-        <div class="detail-row"><span class="detail-label">Fecha de alta</span>   <span class="detail-value">${formatFecha(s.fechaAlta)}</span></div>
-        <div class="detail-row"><span class="detail-label">Última actualiz.</span><span class="detail-value">${formatFecha(s.fechaUpdate)}</span></div>
-      `;
-
-      abrirModal(elModalDet);
+      mostrarDetalle(s);
     } catch (err) {
-      toast('No se pudo obtener el detalle del servicio.', 'error');
+      // Si el endpoint falla, usamos los datos que ya tenemos en la tabla
+      const fila = elBody.querySelector(`tr[data-id="${id}"]`);
+      if (fila) {
+        const nombre   = fila.querySelector('.srv-name')?.textContent  || '';
+        const desc     = fila.querySelector('.srv-desc')?.textContent  || '';
+        const duracion = fila.querySelector('.srv-duration')?.textContent?.replace(' min', '') || '';
+        const precio   = fila.querySelector('.srv-price')?.textContent || '';
+        const activo   = !!fila.querySelector('.srv-status--activo');
+        const s = { idServicio: id, nombreServicio: nombre, descripcion: desc,
+                    duracionMinutos: duracion, precioBase: precio, activo,
+                    fechaAlta: null, fechaUpdate: null };
+        servicioActivo = s;
+        mostrarDetalle(s);
+      } else {
+        toast(`No se pudo obtener el detalle: ${err.message}`, 'error');
+      }
     }
+  }
+
+  function mostrarDetalle(s) {
+    elDetBody.innerHTML = `
+      <div class="detail-row"><span class="detail-label">ID</span>              <span class="detail-value">${s.idServicio}</span></div>
+      <div class="detail-row"><span class="detail-label">Nombre</span>          <span class="detail-value">${escapeHtml(s.nombreServicio)}</span></div>
+      <div class="detail-row"><span class="detail-label">Descripción</span>     <span class="detail-value">${escapeHtml(s.descripcion)}</span></div>
+      <div class="detail-row"><span class="detail-label">Duración</span>        <span class="detail-value">${s.duracionMinutos} minutos</span></div>
+      <div class="detail-row"><span class="detail-label">Precio base</span>     <span class="detail-value">${typeof s.precioBase === 'number' ? formatPrecio(s.precioBase) + ' MXN' : s.precioBase}</span></div>
+      <div class="detail-row"><span class="detail-label">Estado</span>          <span class="detail-value srv-status srv-status--${s.activo ? 'activo' : 'inactivo'}">${s.activo ? 'Activo' : 'Inactivo'}</span></div>
+      <div class="detail-row"><span class="detail-label">Fecha de alta</span>   <span class="detail-value">${formatFecha(s.fechaAlta)}</span></div>
+      <div class="detail-row"><span class="detail-label">Última actualiz.</span><span class="detail-value">${formatFecha(s.fechaUpdate)}</span></div>
+    `;
+    abrirModal(elModalDet);
   }
 
   // ── Modal crear ──────────────────────────────────────────
@@ -204,38 +227,63 @@
   }
 
   // ── Modal editar ─────────────────────────────────────────
-  // Hace GET by id para tener datos frescos del servidor
   async function abrirModalEditar(id) {
     try {
       const s = await getServicioById(id);
       servicioActivo = s;
-      modoEdicion    = true;
-
-      elFormTitle.textContent = 'Editar servicio';
-      elBtnGText.textContent  = 'Actualizar servicio';
-      elInputId.value         = s.idServicio;
-      elInputNombre.value     = s.nombreServicio  || '';
-      elInputDesc.value       = s.descripcion     || '';
-      elInputDur.value        = s.duracionMinutos || '';
-      elInputPrecio.value     = s.precioBase      || '';
-      limpiarErrores();
-
-      abrirModal(elModalForm);
-      elInputNombre.focus();
+      rellenarFormEditar(s);
     } catch (err) {
-      toast('No se pudo cargar el servicio para editar.', 'error');
+      // Fallback: usar datos de la fila
+      const fila = elBody.querySelector(`tr[data-id="${id}"]`);
+      if (fila) {
+        const nombre   = fila.querySelector('.srv-name')?.textContent  || '';
+        const desc     = fila.querySelector('.srv-desc')?.textContent  || '';
+        const durText  = fila.querySelector('.srv-duration')?.textContent || '';
+        const duracion = durText.replace(' min', '').trim();
+        const precioText = fila.querySelector('.srv-price')?.textContent || '';
+        const precio   = precioText.replace('$', '').replace(/,/g, '').trim();
+        const s = { idServicio: id, nombreServicio: nombre, descripcion: desc,
+                    duracionMinutos: duracion, precioBase: precio };
+        servicioActivo = s;
+        rellenarFormEditar(s);
+      } else {
+        toast(`No se pudo cargar el servicio: ${err.message}`, 'error');
+      }
     }
+  }
+
+  function rellenarFormEditar(s) {
+    modoEdicion = true;
+    elFormTitle.textContent = 'Editar servicio';
+    elBtnGText.textContent  = 'Actualizar servicio';
+    elInputId.value         = s.idServicio;
+    elInputNombre.value     = s.nombreServicio  || '';
+    elInputDesc.value       = s.descripcion     || '';
+    elInputDur.value        = s.duracionMinutos || '';
+    elInputPrecio.value     = s.precioBase      || '';
+    limpiarErrores();
+    abrirModal(elModalForm);
+    elInputNombre.focus();
   }
 
   // ── Modal eliminar ───────────────────────────────────────
   async function abrirModalEliminar(id) {
     try {
       const s = await getServicioById(id);
-      servicioActivo     = s;
+      servicioActivo = s;
       elElimNombre.textContent = s.nombreServicio;
       abrirModal(elModalDel);
     } catch (err) {
-      toast('No se pudo cargar el servicio.', 'error');
+      // Fallback: usar nombre de la fila
+      const fila = elBody.querySelector(`tr[data-id="${id}"]`);
+      if (fila) {
+        const nombre = fila.querySelector('.srv-name')?.textContent || '';
+        servicioActivo = { idServicio: id, nombreServicio: nombre };
+        elElimNombre.textContent = nombre;
+        abrirModal(elModalDel);
+      } else {
+        toast(`No se pudo cargar el servicio: ${err.message}`, 'error');
+      }
     }
   }
 
