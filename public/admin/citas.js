@@ -219,7 +219,6 @@ function renderStats() {
   $('statTotal').textContent       = citas.length;
   $('statConfirmadas').textContent = citas.filter(c => c.estado === 'Confirmada').length;
   $('statPendientes').textContent  = citas.filter(c => c.estado === 'Registrada').length;
-  $('statCompletadas').textContent = citas.filter(c => c.estado === 'Completada').length;
   const activas = citas.filter(c => c.estado !== 'Cancelada').length;
   $('citasBadge').textContent = `${activas} cita${activas !== 1 ? 's' : ''} hoy`;
 }
@@ -239,19 +238,19 @@ function abrirModal(id) {
 }
 
 function cerrarModal() {
-  $('modalOverlay').classList.remove('visible');
+  $('citasModalOverlay').classList.remove('visible');
   citaEditando = null;
 }
 
 async function guardarModal() {
   if (!citaEditando) return;
-  const btn = $('modalSaveBtn');
+  const btn = $('citasModalSaveBtn');
   btn.textContent = 'Guardando…';
   btn.disabled    = true;
   try {
     await actualizarCita(citaEditando);
-    citaEditando.hora   = $('modalHora').value;
-    citaEditando.estado = $('modalEstado').value;
+    citaEditando.hora   = $('citasModalHora').value;
+    citaEditando.estado = $('citasModalEstado').value;
     renderTabla();
     renderStats();
     cerrarModal();
@@ -263,6 +262,7 @@ async function guardarModal() {
     btn.disabled    = false;
   }
 }
+
 
 /* ══════════════════════════════════════════
    EVENTOS

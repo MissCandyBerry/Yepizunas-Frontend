@@ -1,65 +1,34 @@
 // ──────────────────────────────────────
 //  reviews.js — Sección de reseñas
 //  Michel Yepiz Nails Studio
+//  Conectado al backend (POST /api/Resena)
 // ──────────────────────────────────────
 
-const STORAGE_KEY = 'myn_reviews';
+const API_BASE = 'http://localhost:5212/api';
 
-// ── Reseñas de muestra (seed) ─────────
-const SEED_REVIEWS = [
-  {
-    id: 'seed-1',
-    name: 'Valeria R.',
-    service: 'Uñas Acrílicas',
-    rating: 5,
-    text: 'Quedé encantada con el resultado. Michel tiene una mano increíble para los diseños y el acabado fue perfecto. Mis acrílicas duraron más de tres semanas sin ningún problema.',
-    date: '2026-04-18',
-  },
-  {
-    id: 'seed-2',
-    name: 'Daniela M.',
-    service: 'Gel Profesional',
-    rating: 5,
-    text: 'El gel duró más de un mes y no se levantó nada. El estudio es muy limpio y el ambiente súper agradable. Ya agendé mi próxima cita.',
-    date: '2026-04-10',
-  },
-  {
-    id: 'seed-3',
-    name: 'Sofía L.',
-    service: 'Nail Art',
-    rating: 4,
-    text: 'El nail art fue hermoso, exactamente lo que pedí. Tardó un poco más de lo esperado pero el resultado valió cada minuto.',
-    date: '2026-03-29',
-  },
-  {
-    id: 'seed-4',
-    name: 'Carmen V.',
-    service: 'Pedicure Spa',
-    rating: 5,
-    text: 'El pedicure spa fue una experiencia relajante de principio a fin. Muy recomendable para darse un descanso y llegar renovada.',
-    date: '2026-03-15',
-  },
-  {
-    id: 'seed-5',
-    name: 'Paola G.',
-    service: 'Manicure Clásico',
-    rating: 5,
-    text: 'Siempre salgo feliz del estudio. El manicure clásico es rápido, preciso y con una presentación impecable. Llevo más de un año siendo clienta.',
-    date: '2026-03-02',
-  },
-  {
-    id: 'seed-6',
-    name: 'Leticia H.',
-    service: 'Retiro y Relleno',
-    rating: 4,
-    text: 'El retiro fue muy cuidadoso, sin lastimar las uñas naturales. El relleno quedó parejo y las uñas lucen nuevas. Buen servicio.',
-    date: '2026-02-21',
-  },
-];
+// ── Auth helpers ───────────────────────
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
+
+function tokenVigente() {
+  const token = localStorage.getItem('token');
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
 
 // ── Estado ─────────────────────────────
-let reviews   = [];
-let activeFilter = 'all';
+let reviews        = [];
+let activeFilter   = 'all';
 let selectedRating = 0;
 
 // ── DOM ────────────────────────────────
@@ -83,20 +52,43 @@ const statAvg   = document.getElementById('statAvg');
 const statFive  = document.getElementById('statFive');
 const statStars = document.getElementById('statStars');
 
-// ── Load / Save ────────────────────────
-function loadReviews() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    reviews = stored ? JSON.parse(stored) : [...SEED_REVIEWS];
-  } catch {
-    reviews = [...SEED_REVIEWS];
+// ── Cliente logueado: prellenar nombre ─
+(function prefillUser() {
+  const nombre = localStorage.getItem('nombre');
+  if (nombre && nameInput) {
+    nameInput.value    = nombre;
+    nameInput.readOnly = true;
   }
-}
+})();
 
-function saveReviews() {
+// ── Cargar reseñas APROBADAS desde backend ─
+async function cargarResenas() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
-  } catch { /* cuota excedida, ignorar */ }
+    const res = await fetch(`${API_BASE}/Resena`, {
+      method: 'GET',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    const raw = await res.json();
+    const lista = Array.isArray(raw) ? raw : (raw.data ?? []);
+
+    // Solo mostrar las APROBADAS en la página pública
+    reviews = lista
+      .filter(r => r.aprobada === true || r.estado === 'Aprobada')
+      .map(r => ({
+        id:      r.idResena ?? r.id,
+        name:    r.nombreCliente || r.cliente?.nombre || 'Cliente',
+        service: r.servicio || '',
+        rating:  Number(r.puntuacion) || 0,
+        text:    r.comentario || '',
+        date:    r.fechaCreacion
+                  ? r.fechaCreacion.split('T')[0]
+                  : new Date().toISOString().split('T')[0],
+      }));
+  } catch (err) {
+    console.error('Error al cargar reseñas:', err);
+    reviews = [];
+  }
 }
 
 // ── Render ─────────────────────────────
@@ -114,7 +106,7 @@ function renderReviews() {
 
   reviewsEmpty.hidden = true;
 
-  // Ordenar: más recientes primero
+  // Más recientes primero
   const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   sorted.forEach((r, i) => {
@@ -141,7 +133,7 @@ function renderReviews() {
       <div class="review-card__footer">
         <div>
           <p class="review-card__author">${escapeHTML(r.name)}</p>
-          <p class="review-card__service">${escapeHTML(r.service)}</p>
+          ${r.service ? `<p class="review-card__service">${escapeHTML(r.service)}</p>` : ''}
         </div>
         <p class="review-card__meta">${dateStr}</p>
       </div>
@@ -158,13 +150,11 @@ function updateStats() {
   const avg   = total > 0 ? (sum / total).toFixed(1) : null;
   const fives = reviews.filter(r => r.rating === 5).length;
 
-  // Contadores animados
   animateCount(statTotal, total);
   animateCount(statFive,  fives);
 
   statAvg.textContent = avg ?? '—';
 
-  // Estrellas del promedio
   if (avg) {
     const rounded = Math.round(+avg);
     statStars.querySelectorAll('.star-icon').forEach((s, i) => {
@@ -240,66 +230,76 @@ filterBtns.forEach(btn => {
   });
 });
 
-// ── Formulario ─────────────────────────
+// ── Formulario: ENVIAR AL BACKEND ──────
 formEl?.addEventListener('submit', handleSubmit);
 
 async function handleSubmit(e) {
   e.preventDefault();
   clearFormError();
 
-  const name    = nameInput.value.trim();
-  const service = serviceSelect.value;
-  const text    = textArea.value.trim();
-
-  if (!name)           { showFormError('Por favor ingresa tu nombre.');           return; }
-  if (name.length < 2) { showFormError('El nombre debe tener al menos 2 caracteres.'); return; }
-  if (!service)        { showFormError('Selecciona el servicio que recibiste.');  return; }
-  if (!selectedRating) { showFormError('Selecciona una calificación de 1 a 5 estrellas.'); return; }
-  if (!text)           { showFormError('Por favor escribe un comentario.');       return; }
-  if (text.length < 10){ showFormError('El comentario debe tener al menos 10 caracteres.'); return; }
-
-  // Simular envío
-  submitBtn.disabled   = true;
-  submitBtn.textContent = 'Publicando…';
-
-  await new Promise(r => setTimeout(r, 700));
-
-  const newReview = {
-    id:      'r-' + Date.now(),
-    name:    sanitize(name),
-    service: sanitize(service),
-    rating:  selectedRating,
-    text:    sanitize(text),
-    date:    new Date().toISOString().split('T')[0],
-  };
-
-  reviews.unshift(newReview);
-  saveReviews();
-
-  // Reset UI
-  formEl.reset();
-  selectedRating = 0;
-  highlightStars(0);
-  starHint.textContent  = 'Selecciona una calificación';
-  charCount.textContent = '0';
-
-  submitBtn.disabled    = false;
-  submitBtn.innerHTML   = 'Publicar reseña <span class="review-form__btn-arrow" aria-hidden="true">→</span>';
-
-  // Actualizar listado y stats
-  if (activeFilter !== 'all' && activeFilter !== String(newReview.rating)) {
-    filterBtns.forEach(b => b.classList.remove('active'));
-    filterBtns[0].classList.add('active');
-    activeFilter = 'all';
+  // Verificar sesión
+  if (!tokenVigente()) {
+    showFormError('Debes iniciar sesión para publicar una reseña.');
+    setTimeout(() => {
+      window.location.href = 'homepage.html?openLogin=true';
+    }, 1500);
+    return;
   }
 
-  updateStats();
-  renderReviews();
+  const idCliente = parseInt(localStorage.getItem('idCliente'), 10);
+  if (!idCliente) {
+    showFormError('No se pudo identificar tu cuenta. Inicia sesión nuevamente.');
+    return;
+  }
 
-  // Scroll suave al grid
-  reviewsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const text = textArea.value.trim();
 
-  toast('¡Reseña publicada! Gracias por compartir tu experiencia.');
+  if (!selectedRating) { showFormError('Selecciona una calificación de 1 a 5 estrellas.'); return; }
+  if (!text)           { showFormError('Por favor escribe un comentario.'); return; }
+  if (text.length < 10){ showFormError('El comentario debe tener al menos 10 caracteres.'); return; }
+
+  // Enviar al backend
+  submitBtn.disabled    = true;
+  submitBtn.textContent = 'Publicando…';
+
+  try {
+    const body = {
+      idCliente:  idCliente,
+      comentario: text,
+      puntuacion: selectedRating,
+    };
+
+    const res = await fetch(`${API_BASE}/Resena`, {
+      method:  'POST',
+      headers: authHeaders(),
+      body:    JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => '');
+      throw new Error(`Error ${res.status}: ${errorText || res.statusText}`);
+    }
+
+    // Reset UI
+    formEl.reset();
+    selectedRating       = 0;
+    highlightStars(0);
+    starHint.textContent  = 'Selecciona una calificación';
+    charCount.textContent = '0';
+
+    // Si el nombre estaba prellenado, restaurarlo
+    const nombreUser = localStorage.getItem('nombre');
+    if (nombreUser && nameInput) nameInput.value = nombreUser;
+
+    toast('¡Gracias! Tu reseña fue enviada y está pendiente de aprobación.');
+
+  } catch (err) {
+    console.error(err);
+    showFormError('No se pudo enviar tu reseña. Intenta de nuevo más tarde.');
+  } finally {
+    submitBtn.disabled  = false;
+    submitBtn.innerHTML = 'Publicar reseña <span class="review-form__btn-arrow" aria-hidden="true">→</span>';
+  }
 }
 
 // ── Error helpers ──────────────────────
@@ -319,22 +319,14 @@ function toast(msg, type = 'success') {
   el.className = `reviews-toast${type === 'error' ? ' reviews-toast--error' : ''}`;
   el.textContent = msg;
   container.appendChild(el);
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => el.classList.add('show'));
-  });
-
+  setTimeout(() => el.classList.add('show'), 10);
   setTimeout(() => {
     el.classList.remove('show');
-    setTimeout(() => el.remove(), 400);
-  }, 3500);
+    setTimeout(() => el.remove(), 300);
+  }, 4000);
 }
 
 // ── Sanitize ───────────────────────────
-function sanitize(str) {
-  return String(str).trim().slice(0, 500);
-}
-
 function escapeHTML(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -344,15 +336,9 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
-// ── Nav shadow (reutiliza lógica de nav.js) ──
-const nav = document.getElementById('nav');
-if (nav) {
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 8);
-  }, { passive: true });
-}
-
 // ── Init ───────────────────────────────
-loadReviews();
-updateStats();
-renderReviews();
+(async function init() {
+  await cargarResenas();
+  updateStats();
+  renderReviews();
+})();

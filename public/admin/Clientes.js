@@ -141,7 +141,79 @@ function abrirModal(idCliente) {
 
 function cerrarModal() {
   $('modalOverlay').classList.remove('visible');
+  $('modalError').textContent = '';
   clienteEditando = null;
+}
+
+/* ══════════════════════════════════════════
+   VALIDACIÓN
+══════════════════════════════════════════ */
+function validarCliente(nombre, correo, telefono) {
+  if (!nombre || nombre.length < 2) return 'El nombre debe tener al menos 2 caracteres.';
+  if (!correo) return 'El correo es obligatorio.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) return 'El correo no tiene un formato válido.';
+  if (telefono && !/^[0-9+\-\s()]{7,20}$/.test(telefono)) return 'El teléfono solo puede contener números y los símbolos + - ( ).';
+  return null;
+}
+
+/* ══════════════════════════════════════════
+   API — ACTUALIZAR CLIENTE (PUT)
+══════════════════════════════════════════ */
+async function guardarCliente() {
+  if (!clienteEditando) return;
+
+  const nombre   = $('modalNombre').value.trim();
+  const correo   = $('modalCorreo').value.trim();
+  const telefono = $('modalTelefono').value.trim();
+
+  const error = validarCliente(nombre, correo, telefono);
+  if (error) {
+    $('modalError').textContent = error;
+    return;
+  }
+  $('modalError').textContent = '';
+
+  const btn = $('modalSaveBtn');
+  btn.textContent = 'Guardando…';
+  btn.disabled    = true;
+
+  try {
+    // Mantener todos los campos del cliente original y solo sobrescribir los editados
+    const body = {
+      ...clienteEditando,
+      nombre,
+      correo,
+      telefono,
+      fechaUpdate: new Date().toISOString(),
+    };
+
+    const res = await fetch(`${API_BASE_CLIENTE}/Cliente/${clienteEditando.idCliente}`, {
+      method:  'PUT',
+      headers: authHeaders(),
+      body:    JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Error ${res.status}: ${errText || res.statusText}`);
+    }
+
+    // Actualizar el array local sin tener que recargar todo
+    const idx = clientes.findIndex(c => c.idCliente === clienteEditando.idCliente);
+    if (idx !== -1) {
+      clientes[idx] = { ...clientes[idx], nombre, correo, telefono };
+    }
+
+    renderTabla();
+    renderBadge();
+    cerrarModal();
+    showToast('Cliente actualizado correctamente');
+  } catch (err) {
+    $('modalError').textContent = 'No se pudo guardar: ' + err.message;
+  } finally {
+    btn.textContent = 'Guardar cambios';
+    btn.disabled    = false;
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -162,6 +234,7 @@ $('clientesTableBody').addEventListener('click', e => {
 
 $('modalClose').addEventListener('click', cerrarModal);
 $('modalCancelBtn').addEventListener('click', cerrarModal);
+$('modalSaveBtn').addEventListener('click', guardarCliente);
 $('modalOverlay').addEventListener('click', e => {
   if (e.target === $('modalOverlay')) cerrarModal();
 });

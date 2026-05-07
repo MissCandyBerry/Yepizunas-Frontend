@@ -10,7 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="admin.css" />
   <link rel="stylesheet" href="citas.css" />
-  <link rel="stylesheet" href="Servicios.css">
   <link rel="stylesheet" href="modal.css">
 </head>
 
@@ -386,39 +385,7 @@
 }
 .modal-btn--primary:hover { background: #b89973; border-color: #b89973; }
 
-/* ── Fix: Centrar modal de nueva cita ── */
-#nuevoCitaOverlay {
-  inset: 0;
-  background: rgba(10,10,10,0.55);
-  backdrop-filter: blur(3px);
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
 
-#nuevoCitaOverlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-#nuevoCitaOverlay .modal {
-  background: #fff;
-  border: 1px solid rgba(200,169,138,.2);
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
-  display: flex;
-  animation: slideUp 0.3s ease both;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
   </style>
 </head>
@@ -463,6 +430,12 @@
           <a href="Servicios.html" class="sidebar__link">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             Servicios
+          </a>
+        </li>
+        <li>
+          <a href="Resenas.html" class="sidebar__link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Reseñas
           </a>
         </li>
       </ul>
@@ -523,11 +496,6 @@
           <div class="citas-stat__value" id="statPendientes">—</div>
           <div class="citas-stat__sub">por confirmar</div>
         </div>
-        <div class="citas-stat">
-          <div class="citas-stat__label">Completadas</div>
-          <div class="citas-stat__value" id="statCompletadas">—</div>
-          <div class="citas-stat__sub">atendidas hoy</div>
-        </div>
       </div>
       
       <!-- Tabs de filtro -->
@@ -536,7 +504,6 @@
           <button class="citas-tab citas-tab--active" data-filter="todas" aria-selected="true">Todas</button>
           <button class="citas-tab" data-filter="Registrada" aria-selected="false">Registradas</button>
           <button class="citas-tab" data-filter="Confirmada" aria-selected="false">Confirmadas</button>
-          <button class="citas-tab" data-filter="Completada" aria-selected="false">Completadas</button>
           <button class="citas-tab" data-filter="Cancelada" aria-selected="false">Canceladas</button>
         </div>
       </div>
@@ -588,7 +555,6 @@
         <select id="citasModalEstado" class="modal__input">
           <option value="Registrada">Registrada</option>
           <option value="Confirmada">Confirmada</option>
-          <option value="Completada">Completada</option>
           <option value="Cancelada">Cancelada</option>
         </select>
       </div>

@@ -34,21 +34,25 @@ export async function obtenerCitasOcupadas() {
 // booking.js
 
 function verificarSesion() {
-    // Usamos la función que ya valida si el token existe y no ha expirado
-    const sesionActiva = tokenVigente(); 
+    const sesionActiva = tokenVigente();
 
     if (!sesionActiva) {
-        // Creamos el aviso estético
         const aviso = document.createElement('div');
         aviso.className = 'auth-alert';
-        aviso.innerText = "Inicia sesión para agendar tu cita";
+        aviso.setAttribute('role', 'dialog');
+        aviso.setAttribute('aria-modal', 'true');
+        aviso.innerHTML = `
+          <p class="auth-alert__eyebrow">Sesión requerida</p>
+          <h3 class="auth-alert__title">Inicia sesión para agendar</h3>
+          <p class="auth-alert__text">Para reservar tu cita necesitas tener una cuenta. Te llevamos a iniciar sesión.</p>
+          <div class="auth-alert__spinner" aria-hidden="true"></div>
+        `;
         document.body.appendChild(aviso);
 
-        // Redirigimos al homepage
         setTimeout(() => {
-            window.location.href = 'homepage.html?openLogin=true'; 
-        }, 1000);
-        
+            window.location.href = 'homepage.html?openLogin=true';
+        }, 1800);
+
         return false;
     }
     return true;
