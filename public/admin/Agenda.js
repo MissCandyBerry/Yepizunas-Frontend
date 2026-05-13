@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    CONFIGURACIÓN
 ══════════════════════════════════════════ */
-const API_BASE = 'https://localhost:5212/api';
+const API_BASE = 'http://localhost:5212/api';
 
 /* ══════════════════════════════════════════
    ESTADO
@@ -324,7 +324,7 @@ $('listBody').querySelectorAll('.agenda-card').forEach(card => {
     if (cita) abrirModal(cita);
   });
 });
-}
+
 
 /* ══════════════════════════════════════════
    EVENTOS

@@ -1,6 +1,6 @@
 // homeServicios.js — Carga los servicios activos desde el API y los renderiza en el homepage
 
-const API_BASE = 'https://localhost:5212/api';
+const API_BASE = 'http://localhost:5212/api';
 
 async function cargarServiciosHome() {
   const grid = document.getElementById('servicesHomeGrid');

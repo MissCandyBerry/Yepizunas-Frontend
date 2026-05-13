@@ -176,7 +176,7 @@ const handleLogin = debounce(async () => {
     const rol = localStorage.getItem('rol');
     setTimeout(() => {
       if (rol === 'Admin') {
-        window.location.href = '/public/admin/Servicios.html';
+        window.location.href = 'admin\CitasDelDia.html';
       } else {
         location.reload();
       }
