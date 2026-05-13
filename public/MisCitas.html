@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Citas — Michel Yepiz Nails Studio</title>
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/miscitas.css" />
+</head>
+<body>
+
+  <!-- ── Top Bar ── -->
+  <div class="top-bar">
+    <div class="top-bar__inner">
+      <a href="homepage.html" class="top-bar__link">← Volver al inicio</a>
+      <span class="top-bar__address">Michel Yepiz Nails Studio</span>
+      <span class="top-bar__city" id="topBarUser"></span>
+    </div>
+  </div>
+
+  <!-- ── Nav ── -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__inner">
+      <a href="homepage.html" class="nav__brand">Michel Yepiz</a>
+      <div class="nav__links">
+        <a href="homepage.html" class="nav__link">Inicio</a>
+        <a href="Booking.html" class="nav__link">Agendar</a>
+        <a href="Reviews.html" class="nav__link">Reseñas</a>
+        <a href="MisCitas.html" class="nav__link nav__link--active">Mis citas</a>
+      </div>
+      <button class="nav__cta" id="btnCerrarSesion">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M18 15l3-3m0 0l-3-3m3 3H9" />
+        </svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Page Header ── -->
+  <header class="citas-header">
+    <div class="citas-header__inner">
+      <p class="citas-header__eyebrow">Michel Yepiz Nails Studio</p>
+      <h1 class="citas-header__title">Mis<br>citas</h1>
+      <p class="citas-header__sub">Consulta, confirma o cancela tus reservaciones.</p>
+    </div>
+    <div class="citas-header__line" aria-hidden="true"></div>
+  </header>
+
+  <!-- ── Filters ── -->
+  <section class="citas-filters">
+    <div class="citas-filters__inner">
+      <button class="citas-filter active" data-filter="todas">Todas</button>
+      <button class="citas-filter" data-filter="Registrada">Registradas</button>
+      <button class="citas-filter" data-filter="Confirmada">Confirmadas</button>
+      <button class="citas-filter" data-filter="Cancelada">Canceladas</button>
+    </div>
+  </section>
+
+  <!-- ── Citas Grid ── -->
+  <main class="citas-main">
+    <div class="citas-grid" id="citasGrid">
+      <!-- Skeleton loaders -->
+      <div class="cita-card cita-card--skeleton"></div>
+      <div class="cita-card cita-card--skeleton"></div>
+      <div class="cita-card cita-card--skeleton"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="citas-empty" id="citasEmpty" style="display:none;">
+      <div class="citas-empty__icon">✦</div>
+      <h3 class="citas-empty__title">Sin citas</h3>
+      <p class="citas-empty__sub">No tienes citas en esta categoría.</p>
+      <a href="Booking.html" class="citas-btn citas-btn--primary">Agendar ahora</a>
+    </div>
+  </main>
+
+  <!-- ── Modal de confirmación ── -->
+  <div class="citas-overlay" id="citasOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="citas-modal">
+      <button class="citas-modal__close" id="modalClose" aria-label="Cerrar">&times;</button>
+      <p class="citas-modal__eyebrow" id="modalEyebrow">Confirmar acción</p>
+      <h2 class="citas-modal__title" id="modalTitle">¿Estás segura?</h2>
+      <p class="citas-modal__body" id="modalBody"></p>
+      <div class="citas-modal__actions">
+        <button class="citas-btn citas-btn--ghost" id="modalCancel">Cancelar</button>
+        <button class="citas-btn citas-btn--primary" id="modalConfirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast ── -->
+  <div class="citas-toast" id="citasToast" role="alert" aria-live="polite"></div>
+
+  <script type="module" src="scripts/ui/MisCitas.js"></script>
+
+</body>
+</html>
