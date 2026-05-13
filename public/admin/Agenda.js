@@ -8,6 +8,7 @@ const API_BASE = 'http://localhost:5212/api';
 ══════════════════════════════════════════ */
 let todasLasCitas    = [];
 let clientes         = {};
+let bloqueosPorFecha = {}; // { 'YYYY-MM-DD': [{ id, horaInicio, diaCompleto }] }
 let mesCal           = new Date().getMonth();
 let anioCal          = new Date().getFullYear();
 let diaSeleccionado  = null;
@@ -128,8 +129,37 @@ async function cargarCitas() {
 }
 
 /* ══════════════════════════════════════════
-   RENDER CALENDARIO
+   API — CARGAR BLOQUEOS
 ══════════════════════════════════════════ */
+async function cargarBloqueos() {
+  try {
+    const res = await fetch(`${API_BASE}/BloqueoHorario`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    const raw  = await res.json();
+    const list = Array.isArray(raw) ? raw : raw.data ?? raw ?? [];
+
+    bloqueosPorFecha = {};
+    list.forEach(b => {
+      // DateOnly serializa como "YYYY-MM-DD" (sin T). normalizarFecha maneja ambos formatos.
+      const key = b.fecha ? normalizarFecha(b.fecha.split('T')[0]) : null;
+      if (!key) return;
+      if (!bloqueosPorFecha[key]) bloqueosPorFecha[key] = [];
+      bloqueosPorFecha[key].push({
+        id:          b.idBloqueo ?? b.id,
+        // TimeOnly serializa como "HH:mm:ss" — tomamos solo "HH:mm"
+        horaInicio:  b.horaInicio ? b.horaInicio.substring(0, 5) : null,
+        diaCompleto: b.diaCompleto || false,
+      });
+    });
+  } catch (err) {
+    console.warn('No se pudieron cargar bloqueos:', err.message);
+    bloqueosPorFecha = {};
+  }
+}
+
+
 function renderCalendario() {
   const grid = $('agendaGrid');
   grid.innerHTML = '';
@@ -152,23 +182,39 @@ function renderCalendario() {
   }
 
   for (let d = 1; d <= diasEnMes; d++) {
-    const fechaStr = `${anioCal}-${String(mesCal + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const fechaStr   = `${anioCal}-${String(mesCal + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday    = fechaStr === fechaHoy;
     const isSelected = fechaStr === diaSeleccionado;
     const hasCitas   = fechasConCitas.has(fechaStr);
 
+    const bloqueosDia    = bloqueosPorFecha[fechaStr] || [];
+    const esBloqueadoTotal = bloqueosDia.some(b => b.diaCompleto);
+    const tieneBloqueos  = bloqueosDia.length > 0;
+
     const div = document.createElement('div');
     div.className = [
       'agenda-day',
-      isToday    ? 'agenda-day--today'    : '',
-      isSelected ? 'agenda-day--selected' : '',
+      isToday          ? 'agenda-day--today'    : '',
+      isSelected       ? 'agenda-day--selected' : '',
+      esBloqueadoTotal ? 'agenda-day--blocked'  : (tieneBloqueos ? 'agenda-day--partial-block' : ''),
     ].filter(Boolean).join(' ');
+
+    // Tooltip con info del bloqueo
+    if (tieneBloqueos && !isSelected) {
+      const label = esBloqueadoTotal
+        ? 'Día bloqueado'
+        : `${bloqueosDia.length} horario${bloqueosDia.length > 1 ? 's' : ''} bloqueado${bloqueosDia.length > 1 ? 's' : ''}`;
+      div.title = label;
+    }
 
     div.innerHTML = `
       <span class="agenda-day__num">${d}</span>
       ${hasCitas ? '<span class="agenda-day__dot"></span>' : ''}
+      ${tieneBloqueos && !isSelected ? '<span class="agenda-day__lock" aria-hidden="true">🔒</span>' : ''}
     `;
-    div.addEventListener('click', () => seleccionarDia(fechaStr));
+    if (!esBloqueadoTotal) {
+      div.addEventListener('click', () => seleccionarDia(fechaStr));
+    }
     grid.appendChild(div);
   }
 }
@@ -182,7 +228,50 @@ function seleccionarDia(fechaStr) {
   renderListaDia(fechaStr);
 }
 
-function renderListaDia(fechaStr) {
+/* ══════════════════════════════════════════
+   PANEL DE BLOQUEOS DEL DÍA
+══════════════════════════════════════════ */
+function renderBloqueosPanel(bloqueosDia) {
+  if (!bloqueosDia || bloqueosDia.length === 0) return '';
+
+  const esBloqueadoTotal = bloqueosDia.some(b => b.diaCompleto);
+  const horarios = esBloqueadoTotal
+    ? ['Día completo']
+    : bloqueosDia.map(b => b.horaInicio).filter(Boolean).sort();
+
+  return `
+    <div style="
+      margin-top:1rem;
+      padding:.75rem 1rem;
+      background:rgba(217,112,112,.06);
+      border:1px solid rgba(217,112,112,.18);
+      border-radius:8px;
+    ">
+      <p style="
+        font-family:'Montserrat',sans-serif;
+        font-size:.55rem;
+        font-weight:600;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        color:rgba(180,60,60,.7);
+        margin-bottom:.5rem;
+      ">🔒 Horarios bloqueados</p>
+      <div style="display:flex;flex-wrap:wrap;gap:.35rem;">
+        ${horarios.map(h => `
+          <span style="
+            font-family:'Montserrat',sans-serif;
+            font-size:.62rem;
+            background:rgba(217,112,112,.12);
+            color:#a04040;
+            padding:.2rem .55rem;
+            border-radius:20px;
+          ">${h}</span>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+
   const [y, m, d] = fechaStr.split('-').map(Number);
   const fechaObj  = new Date(y, m - 1, d);
 
@@ -194,16 +283,20 @@ function renderListaDia(fechaStr) {
     .filter(c => c.fecha === fechaStr)
     .sort((a, b) => a.hora.localeCompare(b.hora));
 
+  const bloqueosDia = bloqueosPorFecha[fechaStr] || [];
+  const esBloqueadoTotal = bloqueosDia.some(b => b.diaCompleto);
+
   $('listSub').textContent = citasDia.length === 0
-    ? 'Sin citas este día'
-    : `${citasDia.length} cita${citasDia.length !== 1 ? 's' : ''}`;
+    ? (esBloqueadoTotal ? 'Día bloqueado · Sin citas' : 'Sin citas este día')
+    : `${citasDia.length} cita${citasDia.length !== 1 ? 's' : ''}${bloqueosDia.length > 0 ? ` · ${bloqueosDia.length} horario${bloqueosDia.length > 1 ? 's' : ''} bloqueado${bloqueosDia.length > 1 ? 's' : ''}` : ''}`;
 
   if (citasDia.length === 0) {
     $('listBody').innerHTML = `
       <div class="agenda-empty">
-        <div class="agenda-empty__icon">✦</div>
-        Sin citas este día
-      </div>`;
+        <div class="agenda-empty__icon">${esBloqueadoTotal ? '🔒' : '✦'}</div>
+        ${esBloqueadoTotal ? 'Día bloqueado por el administrador' : 'Sin citas este día'}
+      </div>
+      ${renderBloqueosPanel(bloqueosDia)}`;
     return;
   }
 
@@ -222,7 +315,7 @@ function renderListaDia(fechaStr) {
       </div>
       <span class="agenda-card__badge agenda-card__badge--${cls}">${c.estado}</span>
     </div>`;
-}).join('');
+}).join('') + renderBloqueosPanel(bloqueosDia);
 
 // Agregar click a cada tarjeta
 $('listBody').querySelectorAll('.agenda-card').forEach(card => {
@@ -350,4 +443,9 @@ $('modalOverlay').addEventListener('click', e => {
 });
 
 
-cargarCitas();
+async function init() {
+  await cargarBloqueos();
+  await cargarCitas();
+}
+
+init();
