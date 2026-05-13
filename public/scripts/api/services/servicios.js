@@ -1,5 +1,5 @@
 // servicios.js — sin imports
-const API_BASE = 'http://localhost:5212/api';
+const API_BASE = 'https://localhost:5212/api';
 
 function authHeaders() {
   const token = localStorage.getItem('token');

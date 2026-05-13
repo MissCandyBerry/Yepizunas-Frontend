@@ -3,7 +3,7 @@
 //  Bloqueo de horarios contra el backend
 // ──────────────────────────────────────
 
-const API_BASE = 'http://localhost:5212/api';
+const API_BASE = 'https://localhost:5212/api';
 
 const ALL_SLOTS_AM = ['09:00','09:30','10:00','10:30','11:00','11:30'];
 const ALL_SLOTS_PM = ['12:00','12:30','13:00','13:30','14:00','14:30',

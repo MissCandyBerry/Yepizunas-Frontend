@@ -4,7 +4,7 @@
 //  Conectado al backend (POST /api/Resena)
 // ──────────────────────────────────────
 
-const API_BASE = 'http://localhost:5212/api';
+const API_BASE = 'https://localhost:5212/api';
 
 // ── Auth helpers ───────────────────────
 function authHeaders() {

@@ -6,10 +6,10 @@
 import { tokenVigente } from '../auth.js';
 
 // AGREGA SOLO ESTA VARIABLE PARA LA API:
-const API_BASE = 'http://localhost:5212';
+const API_BASE = 'https://localhost:5212';
 
 // CitasOcupadas.js — sin importar adminApi.js
-const API_URL = 'http://localhost:5212/api/Cita';
+const API_URL = 'https://localhost:5212/api/Cita';
 
 let bloqueosBackend = [];
 
@@ -210,13 +210,18 @@ function renderServices() {
 
   const cardsHtml = pageItems.map((s, i) => `
     <div class="service-option ${ui.service?.id === s.id ? 'selected' : ''}"
-         data-id="${s.id}" role="button" tabindex="0">
+        data-id="${s.id}" role="button" tabindex="0">
       <div class="service-option__check">
         <span class="service-option__check-icon">✓</span>
       </div>
       <p class="service-option__num">${String(start + i + 1).padStart(2, '0')}</p>
       <h3 class="service-option__name">${s.name}</h3>
       <p class="service-option__duration">${s.duration}</p>
+
+      <p class="service-option__price" style="font-weight: 500; font-size: 0.9em; margin-top: 5px; color: #333;">
+        $${s.price} MXN
+      </p>
+
     </div>
   `).join('');
 
@@ -448,6 +453,14 @@ function renderSummary() {
       <span class="booking-summary__key">Duración estimada</span>
       <span class="booking-summary__val">${ui.service.duration}</span>
     </div>
+
+    <div class="booking-summary__item">
+      <span class="booking-summary__key">Costo estimado</span>
+      <span class="booking-summary__val" style="font-weight: bold; color: #d97070;">
+        $${ui.service.price} MXN
+      </span>
+    </div>
+
     <div class="booking-summary__item">
       <span class="booking-summary__key">Fecha</span>
       <span class="booking-summary__val" style="text-transform:capitalize">${dateStr}</span>
@@ -548,6 +561,7 @@ async function cargarServicios() {
       id:       s.idServicio,
       name:     s.nombreServicio,
       duration: s.duracionMinutos ? `${s.duracionMinutos} min` : '—',
+      price:    s.precioBase
     }));
   } catch (err) {
     console.error('Error cargando servicios:', err);

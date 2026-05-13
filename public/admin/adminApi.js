@@ -3,7 +3,7 @@
 //  para todos los módulos del panel admin
 // ──────────────────────────────────────
 
-const API_BASE = 'http://localhost:5212/api';
+const API_BASE = 'https://localhost:5212/api';
 
 // ── Headers con Authorization ──────────
 export function authHeaders() {

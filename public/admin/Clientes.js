@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    CONFIGURACIÓN
 ══════════════════════════════════════════ */
-const API_BASE_CLIENTE = 'http://localhost:5212/api';
+const API_BASE_CLIENTE = 'https://localhost:5212/api';
 
 /* ══════════════════════════════════════════
    ESTADO
