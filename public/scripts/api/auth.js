@@ -1,4 +1,4 @@
-const API_BASE = 'https://localhost:5212';
+const API_BASE = 'http://localhost:5212';
 
 // ── Sanitización básica ──────────────────────────────────
 function sanitize(str) {

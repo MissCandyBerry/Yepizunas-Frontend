@@ -6,10 +6,10 @@
 import { tokenVigente } from '../auth.js';
 
 // AGREGA SOLO ESTA VARIABLE PARA LA API:
-const API_BASE = 'https://localhost:5212';
+const API_BASE = 'http://localhost:5212';
 
 // CitasOcupadas.js — sin importar adminApi.js
-const API_URL = 'https://localhost:5212/api/Cita';
+const API_URL = 'http://localhost:5212/api/Cita';
 
 let bloqueosBackend = [];
 
