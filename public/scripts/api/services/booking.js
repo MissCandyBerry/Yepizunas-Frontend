@@ -318,9 +318,17 @@ function buildMonth() {
     // Estado base del día de la semana (0=Dom cerrado, etc.)
     const dowStatus = DOW_STATUS[dow]; // 'closed', 'available', 'partial'
 
-    // Estado real según citas del backend
+    // Verificar si el admin bloqueó el día completo
+    // DateOnly serializa como "YYYY-MM-DD" (sin T), pero por compatibilidad usamos split('T')[0]
+    const bloqueoCompleto = bloqueosBackend.some(b =>
+      b.fecha && normFecha(b.fecha) === key && b.diaCompleto
+    );
+
+    // Estado real según citas + bloqueos del backend
     let status = dowStatus;
-    if (dowStatus !== 'closed') {
+    if (bloqueoCompleto) {
+      status = 'full'; // día completamente bloqueado por admin
+    } else if (dowStatus !== 'closed') {
       if (isDiaLleno(key)) {
         status = 'full';        // sin disponibilidad
       } else if (isDiaParcial(key)) {
@@ -390,15 +398,16 @@ function renderTimeSlots() {
     .map(cita => cita.horaInicio.substring(0, 5));
 
   // Slots bloqueados por admin
+  // Nota: DateOnly serializa como "YYYY-MM-DD" y TimeOnly como "HH:mm:ss" — sin partes de fecha/hora adicionales
   const horasBloqueadas = bloqueosBackend
     .filter(b => {
-      const fechaBloqueo = b.fecha ? b.fecha.split('T')[0] : null;
+      const fechaBloqueo = b.fecha ? normFecha(b.fecha) : null;
       return fechaBloqueo === selectedDateIso;
     })
     .flatMap(b => {
       // Si es día completo, bloquear todos los slots
       if (b.diaCompleto) return slotsDelDia.map(s => s.time);
-      // Si tiene hora, bloquear ese slot específico
+      // TimeOnly → "HH:mm:ss", tomamos solo "HH:mm"
       return b.horaInicio ? [b.horaInicio.substring(0, 5)] : [];
     });
 
@@ -498,8 +507,17 @@ let citasBackend = null;  // null = cargando, [] = cargó sin citas
  */
 function getSlotsOcupadosPorFecha(fechaIso) {
   return citasBackend
-    .filter(cita => cita.fecha.split('T')[0] === fechaIso)
+    .filter(cita => normFecha(cita.fecha) === fechaIso)
     .map(cita => cita.horaInicio.substring(0, 5));
+}
+
+/**
+ * Normaliza una fecha que puede venir como "YYYY-MM-DD" (DateOnly)
+ * o como "YYYY-MM-DDTHH:mm:ss" (DateTime). Siempre devuelve "YYYY-MM-DD".
+ */
+function normFecha(f) {
+  if (!f) return '';
+  return f.split('T')[0];
 }
 
 /**
@@ -509,7 +527,7 @@ function isDiaLleno(fechaIso) {
   const ocupadosCitas = getSlotsOcupadosPorFecha(fechaIso);
 
   const bloqueosDia = bloqueosBackend.filter(b =>
-    b.fecha && b.fecha.split('T')[0] === fechaIso
+    normFecha(b.fecha) === fechaIso
   );
 
   // Si hay un bloqueo de día completo, el día está lleno
@@ -524,13 +542,13 @@ function isDiaLleno(fechaIso) {
 }
 
 /**
- * Devuelve true si el día tiene AL MENOS UNA cita (pero no está lleno)
+ * Devuelve true si el día tiene AL MENOS UN slot ocupado (pero no está lleno)
  */
 function isDiaParcial(fechaIso) {
   const ocupadosCitas = getSlotsOcupadosPorFecha(fechaIso);
 
   const ocupadosBloqueos = bloqueosBackend
-    .filter(b => b.fecha && b.fecha.split('T')[0] === fechaIso && !b.diaCompleto)
+    .filter(b => normFecha(b.fecha) === fechaIso && !b.diaCompleto)
     .map(b => b.horaInicio ? b.horaInicio.substring(0, 5) : null)
     .filter(Boolean);
 
