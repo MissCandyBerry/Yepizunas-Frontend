@@ -3,7 +3,7 @@
 //  Michel Yepiz Nails Studio
 // ──────────────────────────────────────
 
-const API_BASE = 'http://localhost:5212/api';
+const API_BASE = 'https://localhost:5212/api';
 
 /* ══════════════════════════════════════════
    ESTADO

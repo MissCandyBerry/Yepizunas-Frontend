@@ -1,6 +1,6 @@
 // homeServicios.js — Carga los servicios activos desde el API y los renderiza en el homepage
 
-const API_BASE = 'http://localhost:5212/api';
+const API_BASE = 'https://localhost:5212/api';
 
 async function cargarServiciosHome() {
   const grid = document.getElementById('servicesHomeGrid');
@@ -21,13 +21,18 @@ async function cargarServiciosHome() {
       return;
     }
 
-    grid.innerHTML = lista.map((s, i) => `
+grid.innerHTML = lista.map((s, i) => `
       <article class="service-card">
         <p class="service-card__num">${String(i + 1).padStart(2, '0')}</p>
         <h3 class="service-card__name">${escapeHtml(s.nombreServicio)}</h3>
         ${s.descripcion
           ? `<p class="service-card__desc">${escapeHtml(s.descripcion)}</p>`
           : ''}
+        
+        <p class="service-card__price" style="font-weight: 600; margin-top: 0.8rem; font-size: 1.1rem;">
+          $${s.precioBase} MXN
+        </p>
+        
       </article>
     `).join('');
 

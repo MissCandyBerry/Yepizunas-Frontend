@@ -5,7 +5,7 @@
 
 import { authHeaders } from '../adminApi.js';
 
-const API_URL = 'http://localhost:5212/api/Cita';
+const API_URL = 'https://localhost:5212/api/Cita';
 
 export async function obtenerCitasOcupadas() {
   try {

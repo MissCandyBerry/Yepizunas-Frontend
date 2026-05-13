@@ -2,7 +2,7 @@
 //  NuevaCita.js — Modal de agendar nueva cita
 // ══════════════════════════════════════════
 
-window.API_BASE = window.API_BASE || 'http://localhost:5212/api';
+window.API_BASE = window.API_BASE || 'https://localhost:5212/api';
 
 function authHeaders() {
   const token = localStorage.getItem('token');

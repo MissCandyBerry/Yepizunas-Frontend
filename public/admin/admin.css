@@ -1234,5 +1234,89 @@ body {
 }
 
 .btn-primary:hover {
-  background: #b89973;
+  background: hsl(33, 33%, 59%);
 }
+
+/* ==========================================
+FOOTER DEL SIDEBAR (USUARIO Y LOGOUT)
+   ========================================== */
+.sidebar {
+    display: flex;
+    flex-direction: column; 
+}
+
+.sidebar__footer {
+    margin-top: auto; 
+    padding: 1.5rem 1rem; 
+    border-top: 1px solid #eaeaea;
+    width: 100%;
+    box-sizing: border-box; 
+}
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+    margin-bottom: 15px;
+    width: 100%;
+    overflow: hidden; 
+}
+
+.admin-profile__avatar {
+    width: 32px; 
+    height: 32px;
+    background-color: #222;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    flex-shrink: 0; 
+
+.admin-profile__info {
+    line-height: 1.2;
+    overflow: hidden;
+}
+
+.admin-profile__name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+.admin-profile__role {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-logout {
+    width: 100%;
+    padding: 8px;
+    background-color: transparent;
+    border: 1px solid #d97070;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #d97070;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.btn-logout:hover {
+    background-color: #d97070;
+    color: #fff;
+}}

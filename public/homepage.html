@@ -128,13 +128,25 @@
           </a>
         </div>
 
-        <div class="hours__map" id="contacto" aria-label="Mapa de ubicación">
-          <span class="hours__map-icon" aria-hidden="true">📍</span>
-          <span>C. Alejo Toledo 3144, Juárez</span>
-          <span>Navojoa, Sonora 85870</span>
-        </div>
+          <div class="hours__map" id="contacto" aria-label="Mapa de ubicación" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+          
+              <div style="padding: 30px 20px 20px 20px; text-align: center;">
+                <span class="hours__map-icon" aria-hidden="true" style="font-size: 1.5rem; display: block; margin-bottom: 10px;">📍</span>
+                <span style="display: block; font-weight: bold; font-size: 1.2rem; margin-bottom: 5px;">Dónde estamos</span>
+                <span style="display: block; color: #666;">C. Alejo Toledo 3144, Juárez</span>
+                <span style="display: block; color: #666;">Navojoa, Sonora 85870</span>
+              </div>
+          
 
-      </div>
+              <iframe 
+                src="https://maps.google.com/maps?q=C.+Alejo+Toledo+3144,+Ju%C3%A1rez,+85870+Navojoa,+Sonora&hl=es&z=17&output=embed" 
+                style="border:0; width: 100%; min-height: 350px; display: block; flex-grow: 1;" 
+                allowfullscreen="" 
+                loading="lazy" 
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+          </div>
+
     </section>
 
   </main>
