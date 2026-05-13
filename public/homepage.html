@@ -39,18 +39,22 @@
           <li><a href="Booking.html" class="nav__link">Agenda tu cita</a></li>
           <li><a href="#horarios" class="nav__link">Horarios</a></li>
           <li><a href="Reviews.html" class="nav__link">Reseñas</a></li>
+          <!-- Mis Citas: solo visible si hay sesión iniciada -->
+          <li id="navMisCitasItem" style="display:none;">
+            <a href="MisCitas.html" class="nav__link">Mis citas</a>
+          </li>
         </ul>
       </nav>
 
-      <a href="#cuenta" class="nav__cta" aria-label="Mi cuenta">
-        <!-- person icon -->
+      <!-- Si hay sesión: muestra nombre + link a mis citas; si no: abre modal -->
+      <a href="#cuenta" class="nav__cta" id="navCta" aria-label="Mi cuenta">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
              aria-hidden="true">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
-        Mi cuenta
+        <span id="navCtaLabel">Mi cuenta</span>
       </a>
 
     </div>
@@ -152,13 +156,14 @@
           <li><a href="Booking.html">Agenda tu cita</a></li>
           <li><a href="#horarios">Horarios</a></li>
           <li><a href="Reviews.html">Reseñas</a></li>
+          <li><a href="MisCitas.html">Mis citas</a></li>
         </ul>
       </nav>
 
       <div>
         <p class="footer__heading">Contacto</p>
         <ul class="footer__list" role="list">
-          <li><a href="tel:+526441234567">+52 642 114 0145</a></li>
+          <li><a href="tel:+526421140145">+52 642 114 0145</a></li>
           <li><a href="https://www.instagram.com/michelyepiznails/" target="_blank" rel="noopener noreferrer">@michelyepiznails</a></li>
         </ul>
       </div>
@@ -178,7 +183,6 @@
     <div class="modal">
       <button class="modal__close" id="modalClose" aria-label="Cerrar">&times;</button>
 
-      <!-- ICONO -->
       <div class="modal__icon" aria-hidden="true">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -298,30 +302,45 @@
     </div>
   </div>
 
-  <!-- Scripts — ambos como módulos ES para importar auth.js correctamente -->
   <script type="module" src="scripts/ui/nav.js"></script>
   <script type="module" src="scripts/ui/modal.js"></script>
   <script type="module" src="scripts/ui/homeServicios.js"></script>
 
-<!-- LÓGICA DE REDIRECCIÓN AUTOMÁTICA -->
+  <!-- Manejo de sesión en nav -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Mostrar "Mis citas" y nombre si hay sesión activa
+      const token  = localStorage.getItem('token');
+      const nombre = localStorage.getItem('nombre');
+
+      if (token && nombre) {
+        // Muestra el ítem "Mis citas" en el nav
+        const navItem = document.getElementById('navMisCitasItem');
+        if (navItem) navItem.style.display = 'list-item';
+
+        // Cambia el botón "Mi cuenta" → nombre del usuario con link a Mis Citas
+        const navCta   = document.getElementById('navCta');
+        const ctaLabel = document.getElementById('navCtaLabel');
+        if (ctaLabel) ctaLabel.textContent = nombre;
+        if (navCta) {
+          navCta.href  = 'MisCitas.html';
+          navCta.title = 'Ver mis citas';
+        }
+      }
+
+      // Abrir login automáticamente si viene con ?openLogin=true
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('openLogin') === 'true') {
-        const modal = document.getElementById('authModal');
+        const modal      = document.getElementById('authModal');
         const panelLogin = document.getElementById('panelLogin');
-        
         if (modal && panelLogin) {
           modal.classList.add('active');
           panelLogin.classList.add('active');
-          
-          // Limpia la URL para que no diga ?openLogin=true
-          const cleanUrl = window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
     });
   </script>
-  
+
 </body>
 </html>

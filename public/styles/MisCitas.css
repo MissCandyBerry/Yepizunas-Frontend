@@ -1,0 +1,515 @@
+/* ===========================
+   Michel Yepiz Nails Studio
+   Mis Citas Stylesheet
+   =========================== */
+
+/* ── Nav active link ── */
+.nav__link--active {
+  color: var(--color-black) !important;
+}
+.nav__link--active::after {
+  width: 100% !important;
+}
+
+/* ── Page Header ── */
+.citas-header {
+  position: relative;
+  padding: 5rem 2.5rem 4rem;
+  border-bottom: 1px solid #e8e4e0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.citas-header__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 560px;
+  animation: fadeUp 0.8s ease both;
+}
+
+.citas-header__eyebrow {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 0.75rem;
+}
+
+.citas-header__title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 300;
+  line-height: 1.0;
+  color: var(--color-black);
+  margin-bottom: 1.25rem;
+}
+
+.citas-header__sub {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+
+.citas-header__line {
+  position: absolute;
+  top: 8%;
+  right: 12%;
+  width: 1px;
+  height: 84%;
+  background: linear-gradient(to bottom, transparent, rgba(200,169,138,0.2), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Filters ── */
+.citas-filters {
+  border-bottom: 1px solid #e8e4e0;
+  background: #faf9f8;
+}
+
+.citas-filters__inner {
+  display: flex;
+  gap: 0;
+  padding: 0 2.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.citas-filters__inner::-webkit-scrollbar { display: none; }
+
+.citas-filter {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 1rem 1.5rem;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.citas-filter:hover {
+  color: var(--color-black);
+}
+
+.citas-filter.active {
+  color: var(--color-black);
+  border-bottom-color: var(--color-accent);
+}
+
+/* ── Main / Grid ── */
+.citas-main {
+  padding: 3rem 2.5rem 6rem;
+  min-height: 50vh;
+}
+
+.citas-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-left: 1px solid #e8e4e0;
+  border-top: 1px solid #e8e4e0;
+}
+
+/* ── Cita Card ── */
+.cita-card {
+  padding: 2rem;
+  border-right: 1px solid #e8e4e0;
+  border-bottom: 1px solid #e8e4e0;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  transition: background-color var(--transition);
+  animation: fadeUp 0.5s ease both;
+}
+
+.cita-card:hover {
+  background: #faf9f8;
+}
+
+/* Línea dorada inferior igual que service-card */
+.cita-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition);
+}
+
+.cita-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Skeleton */
+.cita-card--skeleton {
+  min-height: 240px;
+  background: linear-gradient(90deg, #f5f3f1 25%, #ece9e5 50%, #f5f3f1 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  cursor: default;
+}
+
+.cita-card--skeleton::before { display: none; }
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* Card content */
+.cita-card__num {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  color: var(--color-muted);
+  margin-bottom: 1.25rem;
+}
+
+.cita-card__fecha {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--color-black);
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.cita-card__hora {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  letter-spacing: 0.08em;
+  margin-bottom: 1.5rem;
+}
+
+.cita-card__precio {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--color-black);
+  margin-bottom: 1.25rem;
+}
+
+/* Estado badge */
+.cita-card__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.cita-card__estado--registrada {
+  background: rgba(200, 169, 138, 0.12);
+  color: var(--color-accent);
+  border: 1px solid rgba(200, 169, 138, 0.3);
+}
+
+.cita-card__estado--confirmada {
+  background: rgba(74, 130, 89, 0.08);
+  color: #4a8259;
+  border: 1px solid rgba(74, 130, 89, 0.25);
+}
+
+.cita-card__estado--cancelada {
+  background: rgba(180, 80, 80, 0.07);
+  color: #b45050;
+  border: 1px solid rgba(180, 80, 80, 0.2);
+}
+
+.cita-card__estado-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* Card actions */
+.cita-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cita-card__btn {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 1px solid #e8e4e0;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.cita-card__btn--confirmar {
+  color: var(--color-black);
+  border-color: var(--color-black);
+}
+
+.cita-card__btn--confirmar:hover {
+  background: var(--color-black);
+  color: #ffffff;
+}
+
+.cita-card__btn--cancelar {
+  color: var(--color-muted);
+  border-color: #e8e4e0;
+}
+
+.cita-card__btn--cancelar:hover {
+  border-color: #b45050;
+  color: #b45050;
+}
+
+/* ── Empty state ── */
+.citas-empty {
+  text-align: center;
+  padding: 5rem 2rem;
+  animation: fadeUp 0.5s ease both;
+}
+
+.citas-empty__icon {
+  font-size: 2.5rem;
+  margin-bottom: 1.25rem;
+  color: var(--color-accent);
+  opacity: 0.6;
+}
+
+.citas-empty__title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--color-black);
+  margin-bottom: 0.5rem;
+}
+
+.citas-empty__sub {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  margin-bottom: 2rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── Buttons ── */
+.citas-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.85rem 1.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+
+.citas-btn--primary {
+  background: var(--color-black);
+  color: #ffffff;
+}
+
+.citas-btn--primary:hover {
+  background: var(--color-accent);
+  color: var(--color-black);
+}
+
+.citas-btn--ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1px solid #e8e4e0;
+}
+
+.citas-btn--ghost:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ── Modal de confirmación ── */
+.citas-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.citas-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.citas-modal {
+  background: #ffffff;
+  width: 100%;
+  max-width: 480px;
+  padding: 3rem;
+  position: relative;
+  border-top: 2px solid var(--color-accent);
+  transform: translateY(20px);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.citas-overlay.active .citas-modal {
+  transform: translateY(0);
+}
+
+.citas-modal__close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.25rem;
+  transition: color var(--transition);
+}
+
+.citas-modal__close:hover { color: var(--color-accent); }
+
+.citas-modal__eyebrow {
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.citas-modal__title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 300;
+  color: var(--color-black);
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.citas-modal__body {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.citas-modal__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* ── Toast ── */
+.citas-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--color-black);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  padding: 0.85rem 1.75rem;
+  border-left: 3px solid var(--color-accent);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  white-space: nowrap;
+}
+
+.citas-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.citas-toast.error {
+  border-left-color: #b45050;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .citas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .citas-header {
+    padding: 3.5rem 1.25rem 3rem;
+  }
+
+  .citas-header__line { display: none; }
+
+  .citas-filters__inner {
+    padding: 0 1.25rem;
+  }
+
+  .citas-main {
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  .citas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .citas-modal {
+    padding: 2rem 1.5rem;
+  }
+
+  .citas-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .citas-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .citas-toast {
+    width: calc(100% - 2.5rem);
+    white-space: normal;
+    text-align: center;
+  }
+}
