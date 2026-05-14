@@ -63,7 +63,7 @@ if (openBtn) {
     form.reset();
     guardarBtn.disabled = false;
     guardarBtn.textContent = 'Guardar cita';
-    inputFecha.value = new Date().toISOString().split('T')[0];
+    await ncInitCalendar();
     await cargarClientes();
     await cargarServicios();
   });
@@ -240,3 +240,134 @@ if (form) {
 }
 
 console.log('✅ NuevaCita.js inicializado');
+
+// ══════════════════════════════════════════
+//  CALENDARIO DEL MODAL "NUEVA CITA"
+// ══════════════════════════════════════════
+
+const MONTHS_ES_NC = [
+  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+];
+
+const ncCalGrid     = document.getElementById('ncCalGrid');
+const ncCalLabel    = document.getElementById('ncCalLabel');
+const ncCalPrev     = document.getElementById('ncCalPrev');
+const ncCalNext     = document.getElementById('ncCalNext');
+
+let ncCalYear, ncCalMonth, ncSelectedKey = null;
+let ncBloqueosPorFecha = {}; // { 'YYYY-MM-DD': { diaCompleto: bool, parcial: bool } }
+
+function ncDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+
+// Carga bloqueos del backend para marcar días bloqueados
+async function ncCargarBloqueos() {
+  try {
+    const res = await fetch(`${window.API_BASE}/BloqueoHorario`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) return;
+    const raw  = await res.json();
+    const list = raw.data ?? raw ?? [];
+
+    ncBloqueosPorFecha = {};
+    list.forEach(b => {
+      const key = b.fecha ? b.fecha.split('T')[0] : null;
+      if (!key) return;
+      if (!ncBloqueosPorFecha[key]) {
+        ncBloqueosPorFecha[key] = { diaCompleto: false, parcial: false };
+      }
+      if (b.diaCompleto) ncBloqueosPorFecha[key].diaCompleto = true;
+      else ncBloqueosPorFecha[key].parcial = true;
+    });
+  } catch (err) {
+    console.warn('No se pudieron cargar los bloqueos para el calendario:', err);
+  }
+}
+
+function ncBuildMonth() {
+  if (!ncCalGrid || !ncCalLabel) return;
+
+  ncCalLabel.textContent = `${MONTHS_ES_NC[ncCalMonth]} ${ncCalYear}`;
+
+  const today       = new Date(); today.setHours(0,0,0,0);
+  const firstDow    = new Date(ncCalYear, ncCalMonth, 1).getDay();
+  const daysInMonth = new Date(ncCalYear, ncCalMonth+1, 0).getDate();
+
+  let html = Array(firstDow).fill('<div class="nc-cal__day nc-cal__day--empty"></div>').join('');
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date    = new Date(ncCalYear, ncCalMonth, d);
+    const key     = ncDateKey(date);
+    const isPast  = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const isSel   = ncSelectedKey === key;
+    const bloqueo = ncBloqueosPorFecha[key];
+    const blocked = bloqueo?.diaCompleto;
+    const partial = bloqueo?.parcial && !blocked;
+
+    let cls = 'nc-cal__day';
+    if (isPast)  cls += ' nc-cal__day--past';
+    if (isToday) cls += ' nc-cal__day--today';
+    if (isSel)   cls += ' nc-cal__day--selected';
+    if (blocked) cls += ' nc-cal__day--blocked';
+    if (partial) cls += ' nc-cal__day--partial';
+
+    const clickable = !isPast && !blocked;
+    html += `
+      <div class="${cls}" data-key="${key}" ${clickable ? 'tabindex="0"' : ''}>
+        <span class="nc-cal__day-num">${d}</span>
+        ${blocked ? '<span class="nc-cal__day-lock">🔒</span>' : ''}
+      </div>`;
+  }
+
+  ncCalGrid.innerHTML = html;
+
+  // Listeners de cada día
+  ncCalGrid.querySelectorAll('.nc-cal__day[data-key]').forEach(cell => {
+    if (cell.classList.contains('nc-cal__day--past') ||
+        cell.classList.contains('nc-cal__day--blocked') ||
+        cell.classList.contains('nc-cal__day--empty')) return;
+
+    cell.addEventListener('click', () => ncSelectDay(cell.dataset.key));
+    cell.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        ncSelectDay(cell.dataset.key);
+      }
+    });
+  });
+}
+
+function ncSelectDay(key) {
+  ncSelectedKey = key;
+  inputFecha.value = key; // alimenta el hidden input que ya usa el form
+  ncBuildMonth();
+}
+
+// Navegación de meses
+ncCalPrev?.addEventListener('click', () => {
+  ncCalMonth--;
+  if (ncCalMonth < 0) { ncCalMonth = 11; ncCalYear--; }
+  ncBuildMonth();
+});
+
+ncCalNext?.addEventListener('click', () => {
+  ncCalMonth++;
+  if (ncCalMonth > 11) { ncCalMonth = 0; ncCalYear++; }
+  ncBuildMonth();
+});
+
+// Función pública que se llama al abrir el modal
+async function ncInitCalendar() {
+  const today = new Date();
+  ncCalYear  = today.getFullYear();
+  ncCalMonth = today.getMonth();
+  ncSelectedKey = ncDateKey(today);
+  inputFecha.value = ncSelectedKey;
+
+  await ncCargarBloqueos();
+  ncBuildMonth();
+}

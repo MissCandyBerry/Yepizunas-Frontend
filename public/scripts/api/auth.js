@@ -67,6 +67,7 @@ export function cerrarSesionSiExpirado() {
 }
 
 // ── Login ────────────────────────────────────────────────
+// ── Login ────────────────────────────────────────────────
 export async function loginUsuario(email, password) {
   checkRateLimit();
 
@@ -80,22 +81,30 @@ export async function loginUsuario(email, password) {
 
   if (!res.ok) {
     onLoginFail();
+
+    // ⚠️ DETECTOR DE CORREO NO VERIFICADO
+    const msg = (data.message || '').toLowerCase();
+    if (msg.includes('verificado') || msg.includes('verificar') || msg.includes('verifica')) {
+      const err = new Error(data.message || 'Correo no verificado');
+      err.code = 'EMAIL_NOT_VERIFIED';
+      throw err;
+    }
+
     throw new Error(data.message || 'Error al iniciar sesión');
   }
 
   onLoginSuccess();
 
-  // data.tipo siempre viene como "usuario" — el rol real está en data.datos.rol
+  // ... resto de la función queda igual (guardar token, rol, etc.)
   localStorage.setItem('token', data.token);
   localStorage.setItem('rol', data.datos?.rol || '');
   if (data.datos?.nombre) {
     localStorage.setItem('nombre', data.datos.nombre);
   }
 
-if (data.datos?.id || data.datos?.idCliente || data.datos?.idUsuario) {
-  localStorage.setItem('idCliente', data.datos.id ?? data.datos.idCliente ?? data.datos.idUsuario);
-}
-  return data;
+  if (data.datos?.id || data.datos?.idCliente || data.datos?.idUsuario) {
+    localStorage.setItem('idCliente', data.datos.id ?? data.datos.idCliente ?? data.datos.idUsuario);
+  }
 }
 
 // ── Registro ─────────────────────────────────────────────
@@ -112,5 +121,37 @@ export async function registrarUsuario(nombre, email, password) {
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Error al registrarse');
+  return data;
+}
+
+// ── Verificar código de correo ────────────────────────────
+export async function verificarCorreo(correo, codigo) {
+  const res = await fetch(`${API_BASE}/api/Usuarios/verificar-correo`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ correo: sanitize(correo), codigo: sanitize(codigo) })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || 'Código inválido o expirado');
+  }
+  return data;
+}
+
+// ── Reenviar código de verificación ──────────────────────
+export async function reenviarCodigo(correo) {
+  const res = await fetch(`${API_BASE}/api/Usuarios/reenviar-codigo`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ correo: sanitize(correo) })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || 'No se pudo reenviar el código');
+  }
   return data;
 }

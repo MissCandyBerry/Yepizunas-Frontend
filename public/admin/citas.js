@@ -6,11 +6,12 @@ const API_BASE = 'http://localhost:5212/api';
 /* ══════════════════════════════════════════
    ESTADO
 ══════════════════════════════════════════ */
-let citas        = [];
-let clientes     = {};
-let filtroActivo = 'todas';
-let busqueda     = '';
-let citaEditando = null;
+let citas         = [];
+let clientes      = {};
+let serviciosCat  = [];   // catálogo de servicios para el modal
+let filtroActivo  = 'todas';
+let busqueda      = '';
+let citaEditando  = null;
 
 /* ══════════════════════════════════════════
    UTILIDADES
@@ -48,6 +49,15 @@ function calcDuracion(inicio, fin) {
     : `${mins} min`;
 }
 
+// Suma minutos a "HH:mm" → "HH:mm:ss"
+function sumarMinutos(horaInicio, minutos) {
+  const [h, m] = horaInicio.split(':').map(Number);
+  const total  = h * 60 + m + minutos;
+  const hh     = String(Math.floor(total / 60) % 24).padStart(2, '0');
+  const mm     = String(total % 60).padStart(2, '0');
+  return `${hh}:${mm}:00`;
+}
+
 function normalizarFecha(f) {
   if (!f) return '';
   const partes = f.split('-');
@@ -82,9 +92,7 @@ function setLoading(on) {
 async function fetchCliente(idCliente) {
   if (clientes[idCliente]) return clientes[idCliente];
   try {
-    const res  = await fetch(`${API_BASE}/Cliente/${idCliente}`, {
-      headers: authHeaders()
-    });
+    const res  = await fetch(`${API_BASE}/Cliente/${idCliente}`, { headers: authHeaders() });
     if (!res.ok) throw new Error();
     const raw  = await res.json();
     const data = raw.data ?? raw;
@@ -99,14 +107,31 @@ async function fetchCliente(idCliente) {
 }
 
 /* ══════════════════════════════════════════
+   API — CARGAR CATÁLOGO DE SERVICIOS (1 sola vez)
+══════════════════════════════════════════ */
+async function cargarCatalogoServicios() {
+  if (serviciosCat.length) return serviciosCat;
+  try {
+    const res = await fetch(`${API_BASE}/Servicios`, { headers: authHeaders() });
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    const raw  = await res.json();
+    serviciosCat = Array.isArray(raw)
+      ? raw
+      : raw.data ?? raw.servicios ?? Object.values(raw).find(Array.isArray) ?? [];
+  } catch (err) {
+    console.error('Error catálogo servicios:', err);
+    serviciosCat = [];
+  }
+  return serviciosCat;
+}
+
+/* ══════════════════════════════════════════
    API — CARGAR CITAS DE HOY
 ══════════════════════════════════════════ */
 async function cargarCitas() {
   setLoading(true);
   try {
-    const res   = await fetch(`${API_BASE}/Cita`, {
-      headers: authHeaders()
-    });
+    const res   = await fetch(`${API_BASE}/Cita`, { headers: authHeaders() });
     if (!res.ok) throw new Error(`Error ${res.status}`);
     const raw   = await res.json();
     const todas = Array.isArray(raw)
@@ -116,7 +141,7 @@ async function cargarCitas() {
 
     const enriquecidas = await Promise.all(
       todas.filter(c => c.activo !== false).map(async c => {
-        const cli      = await fetchCliente(c.idCliente);
+        const cli       = await fetchCliente(c.idCliente);
         const fechaNorm = normalizarFecha(c.fecha ? c.fecha.split('T')[0] : '');
         return {
           id:       c.idCita,
@@ -127,6 +152,8 @@ async function cargarCitas() {
           estado:   c.estado,
           cliente:  cli.nombre,
           tel:      cli.tel,
+          idCliente: c.idCliente,
+          serviciosIds: extraerServiciosIds(c),
           _raw:     c
         };
       })
@@ -141,22 +168,28 @@ async function cargarCitas() {
   }
 }
 
+// Extrae IDs de servicios desde la cita cruda (admite varios formatos)
+function extraerServiciosIds(c) {
+  if (Array.isArray(c.serviciosIds))   return c.serviciosIds.map(Number);
+  if (Array.isArray(c.servicios))      return c.servicios.map(s => Number(s.idServicio ?? s.id));
+  if (Array.isArray(c.citaServicios))  return c.citaServicios.map(s => Number(s.idServicio ?? s.id));
+  if (c.idServicio)                    return [Number(c.idServicio)];
+  return [];
+}
+
 /* ══════════════════════════════════════════
-   API — ACTUALIZAR CITA (PUT)
+   API — ACTUALIZAR CITA (PUT) con body completo
 ══════════════════════════════════════════ */
-async function actualizarCita(cita) {
-  const body = {
-    ...cita._raw,
-    horaInicio:  $('modalHora').value + ':00',
-    estado:      $('modalEstado').value,
-    fechaUpdate: new Date().toISOString(),
-  };
+async function actualizarCita(cita, payload) {
   const res = await fetch(`${API_BASE}/Cita/${cita.id}`, {
     method:  'PUT',
     headers: authHeaders(),
-    body:    JSON.stringify(body)
+    body:    JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error(`Error ${res.status}`);
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || `Error ${res.status}`);
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -174,9 +207,7 @@ async function cancelarCita(id) {
    RENDER
 ══════════════════════════════════════════ */
 function citasFiltradas() {
-  return citas.filter(c => {
-    return filtroActivo === 'todas' || c.estado === filtroActivo;
-  });
+  return citas.filter(c => filtroActivo === 'todas' || c.estado === filtroActivo);
 }
 
 function estadoClass(estado) {
@@ -226,14 +257,31 @@ function renderStats() {
 /* ══════════════════════════════════════════
    MODAL
 ══════════════════════════════════════════ */
-function abrirModal(id) {
+async function abrirModal(id) {
   citaEditando = citas.find(c => c.id === id);
   if (!citaEditando) return;
-  $('citasModalCliente').textContent  = citaEditando.cliente;
-  $('citasModalHora').value           = citaEditando.hora;
-  $('citasModalEstado').value         = citaEditando.estado;
-  $('citasModalNotas').value          = '';
-  $('citasModalSub').textContent      = `${citaEditando.hora} · ${citaEditando.duracion}`;
+
+  await cargarCatalogoServicios();
+
+  // Poblamos el dropdown de servicios
+  const selServ = $('citasModalServicios');
+  selServ.innerHTML = serviciosCat.map(s => {
+    const sid = s.idServicio ?? s.id;
+    const dur = s.duracionMinutos ? ` · ${s.duracionMinutos}min` : '';
+    return `<option value="${sid}">${s.nombreServicio || s.nombre || `Servicio #${sid}`}${dur}</option>`;
+  }).join('');
+
+  // Pre-seleccionar los servicios actuales de la cita
+  Array.from(selServ.options).forEach(opt => {
+    opt.selected = citaEditando.serviciosIds.includes(Number(opt.value));
+  });
+
+  $('citasModalCliente').textContent = citaEditando.cliente;
+  $('citasModalFecha').value         = citaEditando.fecha;
+  $('citasModalHora').value          = citaEditando.hora;
+  $('citasModalEstado').value        = citaEditando.estado;
+  $('citasModalSub').textContent     = `${citaEditando.fecha} · ${citaEditando.hora}`;
+  $('citasModalError').textContent   = '';
   $('citasModalOverlay').classList.add('visible');
 }
 
@@ -245,24 +293,56 @@ function cerrarModal() {
 async function guardarModal() {
   if (!citaEditando) return;
   const btn = $('citasModalSaveBtn');
+  const errorEl = $('citasModalError');
+  errorEl.textContent = '';
+
+  const fecha   = $('citasModalFecha').value;
+  const hora    = $('citasModalHora').value;
+  const estado  = $('citasModalEstado').value;
+  const selServ = $('citasModalServicios');
+  const serviciosIds = Array.from(selServ.selectedOptions).map(o => Number(o.value));
+
+  if (!fecha || !hora) {
+    errorEl.textContent = 'Fecha y hora son obligatorias.';
+    return;
+  }
+  if (serviciosIds.length === 0) {
+    errorEl.textContent = 'Selecciona al menos un servicio.';
+    return;
+  }
+
+  // Calcular horaFin = horaInicio + suma de duraciones de servicios elegidos
+  const duracionTotal = serviciosIds.reduce((acc, sid) => {
+    const s = serviciosCat.find(x => Number(x.idServicio ?? x.id) === sid);
+    return acc + (s?.duracionMinutos || 0);
+  }, 0) || 30; // default 30 min si no hay duración
+
+  const horaFin = sumarMinutos(hora, duracionTotal);
+
+  const payload = {
+    fecha,
+    horaInicio:   hora + ':00',
+    horaFin,
+    estado,
+    idCliente:    citaEditando.idCliente,
+    serviciosIds,
+  };
+
   btn.textContent = 'Guardando…';
   btn.disabled    = true;
   try {
-    await actualizarCita(citaEditando);
-    citaEditando.hora   = $('citasModalHora').value;
-    citaEditando.estado = $('citasModalEstado').value;
-    renderTabla();
-    renderStats();
-    cerrarModal();
+    await actualizarCita(citaEditando, payload);
     showToast('Cita actualizada correctamente');
+    cerrarModal();
+    await cargarCitas();
   } catch (err) {
+    errorEl.textContent = err.message;
     showToast('No se pudo guardar: ' + err.message, 'error');
   } finally {
     btn.textContent = 'Guardar cambios';
     btn.disabled    = false;
   }
 }
-
 
 /* ══════════════════════════════════════════
    EVENTOS
@@ -279,8 +359,6 @@ document.querySelectorAll('.citas-tab').forEach(btn => {
     renderTabla();
   });
 });
-
-
 
 $('citasTableBody').addEventListener('click', async e => {
   const btn    = e.target.closest('[data-accion]');

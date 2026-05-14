@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificar correo — Michel Yepiz Nails Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/modal.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f9f7f5;
+      padding: 2rem 1rem;
+    }
+    .verify-card {
+      background: #fff;
+      max-width: 440px;
+      width: 100%;
+      padding: 2.5rem 2rem;
+      border: 1px solid rgba(10,10,10,0.08);
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .verify-card h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 1.8rem;
+      margin: 1rem 0 0.5rem;
+      color: #0a0a0a;
+    }
+    .verify-card p {
+      font-size: 0.82rem;
+      color: rgba(10,10,10,0.6);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .verify-card strong {
+      color: #0a0a0a;
+    }
+    .verify-input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1px solid rgba(10,10,10,0.15);
+      font-size: 1.1rem;
+      letter-spacing: 0.4em;
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+      background: #fafafa;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .verify-input:focus { border-color: #c8a98a; }
+    .verify-btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: #0a0a0a;
+      color: #f9f7f5;
+      border: none;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .verify-btn:hover:not(:disabled) { background: #2a2a2a; }
+    .verify-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .verify-resend {
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      color: rgba(10,10,10,0.6);
+    }
+    .verify-resend button {
+      background: none;
+      border: none;
+      color: #c8a98a;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+      text-decoration: underline;
+      padding: 0;
+    }
+    .verify-resend button:disabled {
+      color: rgba(10,10,10,0.3);
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+    .verify-msg {
+      font-size: 0.78rem;
+      margin-top: 0.75rem;
+      min-height: 1.2em;
+    }
+    .verify-msg--error   { color: #c0392b; }
+    .verify-msg--success { color: #2e7d32; }
+    .verify-back {
+      display: inline-block;
+      margin-top: 1.5rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: rgba(10,10,10,0.5);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .verify-back:hover { color: #0a0a0a; }
+  </style>
+</head>
+<body>
+
+  <div class="verify-card">
+    <h1>Verifica tu correo</h1>
+    <p>
+      Hemos enviado un código a<br>
+      <strong id="correoMostrado">tu correo</strong>.<br>
+      Ingrésalo a continuación para activar tu cuenta.
+    </p>
+
+    <input
+      type="text"
+      id="codigoInput"
+      class="verify-input"
+      placeholder="000000"
+      maxlength="6"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+    />
+
+    <button class="verify-btn" id="btnVerificar" type="button">Verificar</button>
+
+    <p class="verify-msg" id="msgFeedback" role="alert"></p>
+
+    <p class="verify-resend">
+      ¿No recibiste el código?
+      <button id="btnReenviar" type="button">Reenviar</button>
+    </p>
+
+    <a href="homepage.html" class="verify-back">← Volver al inicio</a>
+  </div>
+
+  <script type="module">
+    import { verificarCorreo, reenviarCodigo } from './scripts/api/auth.js';
+
+    const correo = sessionStorage.getItem('correoPendienteVerificacion');
+    const correoMostrado = document.getElementById('correoMostrado');
+    const codigoInput    = document.getElementById('codigoInput');
+    const btnVerificar   = document.getElementById('btnVerificar');
+    const btnReenviar    = document.getElementById('btnReenviar');
+    const msgFeedback    = document.getElementById('msgFeedback');
+
+    // Si no hay correo en sessionStorage, no tiene sentido estar aquí
+    if (!correo) {
+      window.location.href = 'homepage.html?openLogin=true';
+    } else {
+      correoMostrado.textContent = correo;
+    }
+
+    function showMsg(texto, tipo = 'error') {
+      msgFeedback.textContent = texto;
+      msgFeedback.className = `verify-msg verify-msg--${tipo}`;
+    }
+
+    function clearMsg() {
+      msgFeedback.textContent = '';
+      msgFeedback.className = 'verify-msg';
+    }
+
+    // ── Verificar código ─────────────────────────────────
+    async function handleVerificar() {
+      clearMsg();
+      const codigo = codigoInput.value.trim();
+
+      if (!codigo) {
+        showMsg('Por favor ingresa el código.');
+        return;
+      }
+      if (codigo.length < 4) {
+        showMsg('El código parece incompleto.');
+        return;
+      }
+
+      btnVerificar.disabled = true;
+      const originalText = btnVerificar.textContent;
+      btnVerificar.textContent = 'Verificando...';
+
+      try {
+        await verificarCorreo(correo, codigo);
+        showMsg('¡Correo verificado! Redirigiendo...', 'success');
+        sessionStorage.removeItem('correoPendienteVerificacion');
+        setTimeout(() => {
+          window.location.href = 'homepage.html?openLogin=true';
+        }, 1500);
+      } catch (err) {
+        showMsg(err.message || 'Código inválido.');
+        btnVerificar.disabled = false;
+        btnVerificar.textContent = originalText;
+      }
+    }
+
+    btnVerificar.addEventListener('click', handleVerificar);
+    codigoInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleVerificar();
+    });
+
+    // ── Reenviar código (con cooldown de 30s) ────────────
+    let cooldownTimer = null;
+
+    function startCooldown(seconds) {
+      btnReenviar.disabled = true;
+      let remaining = seconds;
+      btnReenviar.textContent = `Reenviar (${remaining}s)`;
+      cooldownTimer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(cooldownTimer);
+          btnReenviar.disabled = false;
+          btnReenviar.textContent = 'Reenviar';
+        } else {
+          btnReenviar.textContent = `Reenviar (${remaining}s)`;
+        }
+      }, 1000);
+    }
+
+    btnReenviar.addEventListener('click', async () => {
+      clearMsg();
+      btnReenviar.disabled = true;
+      btnReenviar.textContent = 'Enviando...';
+
+      try {
+        await reenviarCodigo(correo);
+        showMsg('Código reenviado. Revisa tu correo.', 'success');
+        startCooldown(30);
+      } catch (err) {
+        showMsg(err.message || 'No se pudo reenviar el código.');
+        btnReenviar.disabled = false;
+        btnReenviar.textContent = 'Reenviar';
+      }
+    });
+  </script>
+
+</body>
+</html>

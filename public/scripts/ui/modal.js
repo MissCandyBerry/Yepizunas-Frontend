@@ -152,17 +152,11 @@ const handleLogin = debounce(async () => {
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPass').value;
 
-  // Validaciones de frontend
   if (!email || !password) {
     mostrarError('panelLogin', 'Por favor llena todos los campos.');
     return;
   }
-  //if (!validarEmail(email)) {
-  //  mostrarError('panelLogin', 'El correo no tiene un formato válido.');
-  //  return;
-  //}
 
-  // Verificar rate limit antes de llamar al API
   try { checkRateLimit(); } catch (e) {
     mostrarError('panelLogin', e.message);
     return;
@@ -176,12 +170,21 @@ const handleLogin = debounce(async () => {
     const rol = localStorage.getItem('rol');
     setTimeout(() => {
       if (rol === 'Admin') {
-        window.location.href = 'admin\CitasDelDia.html';
+        window.location.href = 'admin/Servicios.html';
       } else {
         location.reload();
       }
     }, 900);
   } catch (err) {
+    // ⚠️ Caso especial: correo no verificado → redirigir a página de verificación
+    if (err.code === 'EMAIL_NOT_VERIFIED') {
+      sessionStorage.setItem('correoPendienteVerificacion', email);
+      toast('Tu correo no está verificado. Te llevamos a verificarlo.', 'error');
+      setTimeout(() => {
+        window.location.href = 'verificarCorreo.html';
+      }, 1200);
+      return;
+    }
     mostrarError('panelLogin', err.message);
   } finally {
     setBtnLoading(loginBtn, false);

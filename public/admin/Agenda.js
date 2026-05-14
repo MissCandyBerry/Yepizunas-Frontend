@@ -8,7 +8,8 @@ const API_BASE = 'http://localhost:5212/api';
 ══════════════════════════════════════════ */
 let todasLasCitas    = [];
 let clientes         = {};
-let bloqueosPorFecha = {}; // { 'YYYY-MM-DD': [{ id, horaInicio, diaCompleto }] }
+let serviciosCat     = [];
+let bloqueosPorFecha = {};
 let mesCal           = new Date().getMonth();
 let anioCal          = new Date().getFullYear();
 let diaSeleccionado  = null;
@@ -41,6 +42,14 @@ function calcDuracion(inicio, fin) {
     : `${mins} min`;
 }
 
+function sumarMinutos(horaInicio, minutos) {
+  const [h, m] = horaInicio.split(':').map(Number);
+  const total  = h * 60 + m + minutos;
+  const hh     = String(Math.floor(total / 60) % 24).padStart(2, '0');
+  const mm     = String(total % 60).padStart(2, '0');
+  return `${hh}:${mm}:00`;
+}
+
 function normalizarFecha(f) {
   if (!f) return '';
   const p = f.split('-');
@@ -66,15 +75,21 @@ function showToast(msg, tipo = 'ok') {
   setTimeout(() => t.remove(), 3500);
 }
 
+function extraerServiciosIds(c) {
+  if (Array.isArray(c.serviciosIds))   return c.serviciosIds.map(Number);
+  if (Array.isArray(c.servicios))      return c.servicios.map(s => Number(s.idServicio ?? s.id));
+  if (Array.isArray(c.citaServicios))  return c.citaServicios.map(s => Number(s.idServicio ?? s.id));
+  if (c.idServicio)                    return [Number(c.idServicio)];
+  return [];
+}
+
 /* ══════════════════════════════════════════
    API — FETCH CLIENTE (con caché)
 ══════════════════════════════════════════ */
 async function fetchCliente(id) {
   if (clientes[id]) return clientes[id];
   try {
-    const res  = await fetch(`${API_BASE}/Cliente/${id}`, {
-      headers: authHeaders()
-    });
+    const res  = await fetch(`${API_BASE}/Cliente/${id}`, { headers: authHeaders() });
     if (!res.ok) throw new Error();
     const raw  = await res.json();
     const data = raw.data ?? raw;
@@ -86,14 +101,31 @@ async function fetchCliente(id) {
 }
 
 /* ══════════════════════════════════════════
+   API — CARGAR CATÁLOGO DE SERVICIOS
+══════════════════════════════════════════ */
+async function cargarCatalogoServicios() {
+  if (serviciosCat.length) return serviciosCat;
+  try {
+    const res = await fetch(`${API_BASE}/Servicios`, { headers: authHeaders() });
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    const raw = await res.json();
+    serviciosCat = Array.isArray(raw)
+      ? raw
+      : raw.data ?? raw.servicios ?? Object.values(raw).find(Array.isArray) ?? [];
+  } catch (err) {
+    console.error('Error catálogo servicios:', err);
+    serviciosCat = [];
+  }
+  return serviciosCat;
+}
+
+/* ══════════════════════════════════════════
    API — CARGAR TODAS LAS CITAS
 ══════════════════════════════════════════ */
 async function cargarCitas() {
   $('agendaBadge').textContent = 'Cargando…';
   try {
-    const res = await fetch(`${API_BASE}/Cita`, {
-      headers: authHeaders()
-    });
+    const res = await fetch(`${API_BASE}/Cita`, { headers: authHeaders() });
     if (!res.ok) throw new Error(`Error ${res.status}`);
     const raw   = await res.json();
     const todas = Array.isArray(raw)
@@ -105,14 +137,17 @@ async function cargarCitas() {
       todas.filter(c => c.activo !== false).map(async c => {
         const cli = await fetchCliente(c.idCliente);
         return {
-          id:       c.idCita,
-          fecha:    normalizarFecha(c.fecha ? c.fecha.split('T')[0] : ''),
-          hora:     horaCorta(c.horaInicio),
-          horaFin:  horaCorta(c.horaFin),
-          duracion: calcDuracion(c.horaInicio, c.horaFin),
-          estado:   c.estado,
-          cliente:  cli.nombre,
-          tel:      cli.tel,
+          id:        c.idCita,
+          fecha:     normalizarFecha(c.fecha ? c.fecha.split('T')[0] : ''),
+          hora:      horaCorta(c.horaInicio),
+          horaFin:   horaCorta(c.horaFin),
+          duracion:  calcDuracion(c.horaInicio, c.horaFin),
+          estado:    c.estado,
+          cliente:   cli.nombre,
+          tel:       cli.tel,
+          idCliente: c.idCliente,
+          serviciosIds: extraerServiciosIds(c),
+          _raw:      c
         };
       })
     );
@@ -133,22 +168,18 @@ async function cargarCitas() {
 ══════════════════════════════════════════ */
 async function cargarBloqueos() {
   try {
-    const res = await fetch(`${API_BASE}/BloqueoHorario`, {
-      headers: authHeaders()
-    });
+    const res = await fetch(`${API_BASE}/BloqueoHorario`, { headers: authHeaders() });
     if (!res.ok) throw new Error(`Error ${res.status}`);
     const raw  = await res.json();
     const list = Array.isArray(raw) ? raw : raw.data ?? raw ?? [];
 
     bloqueosPorFecha = {};
     list.forEach(b => {
-      // DateOnly serializa como "YYYY-MM-DD" (sin T). normalizarFecha maneja ambos formatos.
       const key = b.fecha ? normalizarFecha(b.fecha.split('T')[0]) : null;
       if (!key) return;
       if (!bloqueosPorFecha[key]) bloqueosPorFecha[key] = [];
       bloqueosPorFecha[key].push({
         id:          b.idBloqueo ?? b.id,
-        // TimeOnly serializa como "HH:mm:ss" — tomamos solo "HH:mm"
         horaInicio:  b.horaInicio ? b.horaInicio.substring(0, 5) : null,
         diaCompleto: b.diaCompleto || false,
       });
@@ -159,7 +190,9 @@ async function cargarBloqueos() {
   }
 }
 
-
+/* ══════════════════════════════════════════
+   RENDER CALENDARIO
+══════════════════════════════════════════ */
 function renderCalendario() {
   const grid = $('agendaGrid');
   grid.innerHTML = '';
@@ -187,9 +220,9 @@ function renderCalendario() {
     const isSelected = fechaStr === diaSeleccionado;
     const hasCitas   = fechasConCitas.has(fechaStr);
 
-    const bloqueosDia    = bloqueosPorFecha[fechaStr] || [];
+    const bloqueosDia      = bloqueosPorFecha[fechaStr] || [];
     const esBloqueadoTotal = bloqueosDia.some(b => b.diaCompleto);
-    const tieneBloqueos  = bloqueosDia.length > 0;
+    const tieneBloqueos    = bloqueosDia.length > 0;
 
     const div = document.createElement('div');
     div.className = [
@@ -199,7 +232,6 @@ function renderCalendario() {
       esBloqueadoTotal ? 'agenda-day--blocked'  : (tieneBloqueos ? 'agenda-day--partial-block' : ''),
     ].filter(Boolean).join(' ');
 
-    // Tooltip con info del bloqueo
     if (tieneBloqueos && !isSelected) {
       const label = esBloqueadoTotal
         ? 'Día bloqueado'
@@ -233,45 +265,31 @@ function seleccionarDia(fechaStr) {
 ══════════════════════════════════════════ */
 function renderBloqueosPanel(bloqueosDia) {
   if (!bloqueosDia || bloqueosDia.length === 0) return '';
-
   const esBloqueadoTotal = bloqueosDia.some(b => b.diaCompleto);
   const horarios = esBloqueadoTotal
     ? ['Día completo']
     : bloqueosDia.map(b => b.horaInicio).filter(Boolean).sort();
 
   return `
-    <div style="
-      margin-top:1rem;
-      padding:.75rem 1rem;
-      background:rgba(217,112,112,.06);
-      border:1px solid rgba(217,112,112,.18);
-      border-radius:8px;
-    ">
-      <p style="
-        font-family:'Montserrat',sans-serif;
-        font-size:.55rem;
-        font-weight:600;
-        letter-spacing:.12em;
-        text-transform:uppercase;
-        color:rgba(180,60,60,.7);
-        margin-bottom:.5rem;
-      ">🔒 Horarios bloqueados</p>
+    <div style="margin-top:1rem;padding:.75rem 1rem;background:rgba(217,112,112,.06);
+                border:1px solid rgba(217,112,112,.18);border-radius:8px;">
+      <p style="font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:600;
+                letter-spacing:.12em;text-transform:uppercase;color:rgba(180,60,60,.7);
+                margin-bottom:.5rem;">🔒 Horarios bloqueados</p>
       <div style="display:flex;flex-wrap:wrap;gap:.35rem;">
         ${horarios.map(h => `
-          <span style="
-            font-family:'Montserrat',sans-serif;
-            font-size:.62rem;
-            background:rgba(217,112,112,.12);
-            color:#a04040;
-            padding:.2rem .55rem;
-            border-radius:20px;
-          ">${h}</span>
+          <span style="font-family:'Montserrat',sans-serif;font-size:.62rem;
+                       background:rgba(217,112,112,.12);color:#a04040;
+                       padding:.2rem .55rem;border-radius:20px;">${h}</span>
         `).join('')}
       </div>
     </div>`;
 }
 
-
+/* ══════════════════════════════════════════
+   RENDER LISTA DEL DÍA SELECCIONADO
+══════════════════════════════════════════ */
+function renderListaDia(fechaStr) {
   const [y, m, d] = fechaStr.split('-').map(Number);
   const fechaObj  = new Date(y, m - 1, d);
 
@@ -283,7 +301,7 @@ function renderBloqueosPanel(bloqueosDia) {
     .filter(c => c.fecha === fechaStr)
     .sort((a, b) => a.hora.localeCompare(b.hora));
 
-  const bloqueosDia = bloqueosPorFecha[fechaStr] || [];
+  const bloqueosDia      = bloqueosPorFecha[fechaStr] || [];
   const esBloqueadoTotal = bloqueosDia.some(b => b.diaCompleto);
 
   $('listSub').textContent = citasDia.length === 0
@@ -301,33 +319,32 @@ function renderBloqueosPanel(bloqueosDia) {
   }
 
   $('listBody').innerHTML = citasDia.map(c => {
-  const cls = estadoClass(c.estado);
-  return `
-    <div class="agenda-card" data-id="${c.id}" style="cursor:pointer;">
-      <div class="agenda-card__hora">
-        ${c.hora}
-        <span>${c.horaFin !== '—' ? `hasta ${c.horaFin}` : ''}</span>
-      </div>
-      <div class="agenda-card__info">
-        <p class="agenda-card__cliente">${c.cliente}</p>
-        ${c.tel ? `<p class="agenda-card__tel">${c.tel}</p>` : ''}
-        <p class="agenda-card__duracion">${c.duracion !== '—' ? c.duracion : ''}</p>
-      </div>
-      <span class="agenda-card__badge agenda-card__badge--${cls}">${c.estado}</span>
-    </div>`;
-}).join('') + renderBloqueosPanel(bloqueosDia);
+    const cls = estadoClass(c.estado);
+    return `
+      <div class="agenda-card" data-id="${c.id}" style="cursor:pointer;">
+        <div class="agenda-card__hora">
+          ${c.hora}
+          <span>${c.horaFin !== '—' ? `hasta ${c.horaFin}` : ''}</span>
+        </div>
+        <div class="agenda-card__info">
+          <p class="agenda-card__cliente">${c.cliente}</p>
+          ${c.tel ? `<p class="agenda-card__tel">${c.tel}</p>` : ''}
+          <p class="agenda-card__duracion">${c.duracion !== '—' ? c.duracion : ''}</p>
+        </div>
+        <span class="agenda-card__badge agenda-card__badge--${cls}">${c.estado}</span>
+      </div>`;
+  }).join('') + renderBloqueosPanel(bloqueosDia);
 
-// Agregar click a cada tarjeta
-$('listBody').querySelectorAll('.agenda-card').forEach(card => {
-  card.addEventListener('click', () => {
-    const cita = todasLasCitas.find(c => c.id === Number(card.dataset.id));
-    if (cita) abrirModal(cita);
+  $('listBody').querySelectorAll('.agenda-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const cita = todasLasCitas.find(c => c.id === Number(card.dataset.id));
+      if (cita) abrirModal(cita);
+    });
   });
-});
-
+}
 
 /* ══════════════════════════════════════════
-   EVENTOS
+   EVENTOS NAV CALENDARIO
 ══════════════════════════════════════════ */
 $('prevMonth').addEventListener('click', () => {
   mesCal--;
@@ -352,22 +369,32 @@ $('sidebarOverlay').addEventListener('click', () => {
 });
 
 /* ══════════════════════════════════════════
-   INIT
-══════════════════════════════════════════ */
-
-/* ══════════════════════════════════════════
    MODAL EDITAR CITA
 ══════════════════════════════════════════ */
 let citaEditando = null;
 
-function abrirModal(cita) {
+async function abrirModal(cita) {
   citaEditando = cita;
+
+  await cargarCatalogoServicios();
+
+  const selServ = $('modalServicios');
+  selServ.innerHTML = serviciosCat.map(s => {
+    const sid = s.idServicio ?? s.id;
+    const dur = s.duracionMinutos ? ` · ${s.duracionMinutos}min` : '';
+    return `<option value="${sid}">${s.nombreServicio || s.nombre || `Servicio #${sid}`}${dur}</option>`;
+  }).join('');
+
+  Array.from(selServ.options).forEach(opt => {
+    opt.selected = cita.serviciosIds.includes(Number(opt.value));
+  });
+
   $('modalCliente').textContent  = cita.cliente;
-  $('modalDuracion').textContent = cita.duracion !== '—' ? cita.duracion : '—';
+  $('modalFecha').value          = cita.fecha;
   $('modalHora').value           = cita.hora;
   $('modalEstado').value         = cita.estado;
-  $('modalNotas').value          = '';
   $('modalSub').textContent      = `${cita.fecha} · ${cita.hora}`;
+  $('modalError').textContent    = '';
   $('modalOverlay').classList.add('visible');
 }
 
@@ -379,55 +406,58 @@ function cerrarModal() {
 async function guardarModal() {
   if (!citaEditando) return;
   const btn = $('modalSaveBtn');
+  const errEl = $('modalError');
+  errEl.textContent = '';
+
+  const fecha   = $('modalFecha').value;
+  const hora    = $('modalHora').value;
+  const estado  = $('modalEstado').value;
+  const selServ = $('modalServicios');
+  const serviciosIds = Array.from(selServ.selectedOptions).map(o => Number(o.value));
+
+  if (!fecha || !hora) {
+    errEl.textContent = 'Fecha y hora son obligatorias.';
+    return;
+  }
+  if (serviciosIds.length === 0) {
+    errEl.textContent = 'Selecciona al menos un servicio.';
+    return;
+  }
+
+  const duracionTotal = serviciosIds.reduce((acc, sid) => {
+    const s = serviciosCat.find(x => Number(x.idServicio ?? x.id) === sid);
+    return acc + (s?.duracionMinutos || 0);
+  }, 0) || 30;
+
+  const horaFin = sumarMinutos(hora, duracionTotal);
+
+  const payload = {
+    fecha,
+    horaInicio:   hora + ':00',
+    horaFin,
+    estado,
+    idCliente:    citaEditando.idCliente,
+    serviciosIds,
+  };
+
   btn.textContent = 'Guardando…';
   btn.disabled    = true;
-
   try {
-    // Primero obtenemos la cita original del backend para no perder campos
-    const resGet = await fetch(`${API_BASE}/Cita/${citaEditando.id}`, {
-      headers: authHeaders()
-    });
-    if (!resGet.ok) throw new Error(`Error al obtener la cita: ${resGet.status}`);
-    const raw = await resGet.json();
-    const citaOriginal = raw.data ?? raw;
-
-    // Construimos el body con los datos originales + los cambios del modal
-    const body = {
-      ...citaOriginal,
-      horaInicio: $('modalHora').value + ':00',
-      estado:     $('modalEstado').value,
-    };
-
     const res = await fetch(`${API_BASE}/Cita/${citaEditando.id}`, {
       method:  'PUT',
       headers: authHeaders(),
-      body:    JSON.stringify(body),
+      body:    JSON.stringify(payload),
     });
-
     if (!res.ok) {
       const errorText = await res.text();
-      console.error('Error del backend:', errorText);
-      throw new Error(`Error ${res.status}`);
+      throw new Error(errorText || `Error ${res.status}`);
     }
 
-    // Actualizar en memoria
-    citaEditando.hora   = $('modalHora').value;
-    citaEditando.estado = $('modalEstado').value;
-
-    // Actualizar también en todasLasCitas
-    const idx = todasLasCitas.findIndex(c => c.id === citaEditando.id);
-    if (idx !== -1) {
-      todasLasCitas[idx].hora   = citaEditando.hora;
-      todasLasCitas[idx].estado = citaEditando.estado;
-    }
-
-    cerrarModal();
     showToast('Cita actualizada correctamente');
-
-    if (diaSeleccionado) renderListaDia(diaSeleccionado);
-    renderCalendario();
-
+    cerrarModal();
+    await cargarCitas();
   } catch (err) {
+    errEl.textContent = err.message;
     showToast('No se pudo guardar: ' + err.message, 'error');
   } finally {
     btn.textContent = 'Guardar cambios';
@@ -442,7 +472,9 @@ $('modalOverlay').addEventListener('click', e => {
   if (e.target === $('modalOverlay')) cerrarModal();
 });
 
-
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
 async function init() {
   await cargarBloqueos();
   await cargarCitas();

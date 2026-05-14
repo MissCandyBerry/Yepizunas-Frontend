@@ -162,7 +162,7 @@
     </main>
   </div>
 
-<!-- ✅ Modal Editar cita — Cambiar IDs a "citaModal..." para diferenciar -->
+<!-- ✅ Modal Editar cita -->
 <div class="modal-overlay" id="citasModalOverlay" role="dialog" aria-modal="true" aria-labelledby="citasModalTitle">
   <div class="modal">
     <div class="modal__header">
@@ -172,27 +172,37 @@
       </div>
       <button class="modal__close" id="citasModalClose" aria-label="Cerrar">✕</button>
     </div>
+
     <div class="modal__body">
       <div class="modal__field">
         <span class="modal__label">Cliente</span>
         <p class="modal__value" id="citasModalCliente">—</p>
       </div>
       <div class="modal__field">
-        <span class="modal__label">Hora</span>
+        <label class="modal__label" for="citasModalFecha">Fecha</label>
+        <input type="date" id="citasModalFecha" class="modal__input" />
+      </div>
+      <div class="modal__field">
+        <label class="modal__label" for="citasModalHora">Hora inicio</label>
         <input type="time" id="citasModalHora" class="modal__input" />
       </div>
       <div class="modal__field">
-        <span class="modal__label">Estado</span>
+        <label class="modal__label" for="citasModalServicios">Servicios</label>
+        <select id="citasModalServicios" class="modal__input" multiple size="5"></select>
+        <p style="font-size:.58rem;color:rgba(10,10,10,.4);margin-top:.35rem;letter-spacing:.04em;">
+          Mantén Ctrl (⌘ en Mac) para seleccionar varios
+        </p>
+      </div>
+      <div class="modal__field">
+        <label class="modal__label" for="citasModalEstado">Estado</label>
         <select id="citasModalEstado" class="modal__input">
           <option value="Registrada">Registrada</option>
           <option value="Confirmada">Confirmada</option>
+          <option value="Completada">Completada</option>
           <option value="Cancelada">Cancelada</option>
         </select>
       </div>
-      <div class="modal__field">
-        <span class="modal__label">Notas</span>
-        <textarea id="citasModalNotas" class="modal__input" placeholder="Notas internas…"></textarea>
-      </div>
+      <p id="citasModalError" style="color:#d97070;font-size:.75rem;margin-top:.5rem;"></p>
     </div>
     <div class="modal__footer">
       <button class="modal-btn" id="citasModalCancelBtn">Cancelar</button>
