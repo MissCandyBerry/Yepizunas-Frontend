@@ -195,9 +195,11 @@
 
 .cita-card__precio {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: var(--color-black);
+  font-size: 0.8rem;
+  font-weight: 200;
+  color: var(--color-accent);
   margin-bottom: 1.25rem;
+  letter-spacing: 0.05em;
 }
 
 /* Estado badge */
@@ -250,7 +252,7 @@
   flex: 1;
   min-width: 0;
   background: none;
-  border: 1px solid #e8e4e0;
+  border: 1.5px solid #e8e4e0;
   padding: 0.6rem 0.75rem;
   font-family: var(--font-body);
   font-size: 0.6rem;
@@ -260,16 +262,18 @@
   cursor: pointer;
   transition: all var(--transition);
   white-space: nowrap;
+  border-radius: 4px;
 }
 
 .cita-card__btn--confirmar {
-  color: var(--color-black);
-  border-color: var(--color-black);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .cita-card__btn--confirmar:hover {
-  background: var(--color-black);
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-black);
+  border-color: var(--color-accent);
 }
 
 .cita-card__btn--cancelar {
@@ -278,8 +282,8 @@
 }
 
 .cita-card__btn--cancelar:hover {
-  border-color: #b45050;
-  color: #b45050;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* ── Empty state ── */
@@ -326,16 +330,19 @@
   cursor: pointer;
   transition: all var(--transition);
   text-decoration: none;
+  border-radius: 4px;
 }
 
 .citas-btn--primary {
-  background: var(--color-black);
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-black);
+  border: 1.5px solid var(--color-accent);
 }
 
 .citas-btn--primary:hover {
-  background: var(--color-accent);
-  color: var(--color-black);
+  background: var(--color-black);
+  color: var(--color-accent);
+  border-color: var(--color-black);
 }
 
 .citas-btn--ghost {
@@ -377,9 +384,11 @@
   max-width: 480px;
   padding: 3rem;
   position: relative;
-  border-top: 2px solid var(--color-accent);
+  border-top: 3px solid var(--color-accent);
   transform: translateY(20px);
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 .citas-overlay.active .citas-modal {
@@ -431,6 +440,33 @@
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
+}
+
+/* ── Form Inputs ── */
+.citas-input,
+.citas-select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1.5px solid #e8e4e0;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-black);
+  background-color: #ffffff;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.citas-input:focus,
+.citas-select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(200, 169, 138, 0.1);
+}
+
+.citas-input::placeholder {
+  color: var(--color-muted);
+  opacity: 0.6;
 }
 
 /* ── Toast ── */

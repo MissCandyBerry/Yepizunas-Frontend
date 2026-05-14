@@ -77,10 +77,10 @@ const MOCK_SLOTS = [
 
 // ── Estado UI ──────────────────────────
 const ui = {
-  step:    1,
-  service: null,
-  date:    null,
-  time:    null,
+  step:     1,
+  services: [],
+  date:     null,
+  time:     null,
 };
 
 // ── DOM ────────────────────────────────
@@ -110,10 +110,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeBooking();
 });
 
-// ── Navegación entre pasos ─────────────
+// Navegación entre pasos ─────────────
 // Le agregamos "async" a la función para poder usar await con el fetch
 btnNext?.addEventListener('click', async () => {
-  if (ui.step === 1 && !ui.service) { flashError('Selecciona un servicio para continuar.'); return; }
+  if (ui.step === 1 && ui.services.length === 0) { flashError('Selecciona al menos un servicio para continuar.'); return; }
   if (ui.step === 2 && !ui.date)    { flashError('Selecciona una fecha.'); return; }
   if (ui.step === 2 && !ui.time)    { flashError('Selecciona una hora.'); return; }
   
@@ -122,7 +122,7 @@ btnNext?.addEventListener('click', async () => {
       const citaData = {
           fecha: fmtKey(ui.date),        
           horaInicio: ui.time + ":00",   
-          serviciosIds: [ui.service.id], 
+          serviciosIds: ui.services.map(s => s.id), 
           idCliente: parseInt(localStorage.getItem('idCliente'))        
       };
 
@@ -209,7 +209,7 @@ function renderServices() {
   const pageItems = SERVICES.slice(start, start + PAGE_SIZE);
 
   const cardsHtml = pageItems.map((s, i) => `
-    <div class="service-option ${ui.service?.id === s.id ? 'selected' : ''}"
+    <div class="service-option ${ui.services.some(sel => sel.id === s.id) ? 'selected' : ''}"
         data-id="${s.id}" role="button" tabindex="0">
       <div class="service-option__check">
         <span class="service-option__check-icon">✓</span>
@@ -218,8 +218,8 @@ function renderServices() {
       <h3 class="service-option__name">${s.name}</h3>
       <p class="service-option__duration">${s.duration}</p>
 
-      <p class="service-option__price" style="font-weight: 500; font-size: 0.9em; margin-top: 5px; color: #333;">
-        $${s.price} MXN
+      <p class="service-option__price" style="font-weight: 600; font-size: 1.05em; margin-top: 0.75rem; color: var(--color-accent); letter-spacing: 0.5px;">
+        $${s.price.toLocaleString('es-MX')} MXN
       </p>
 
     </div>
@@ -241,9 +241,19 @@ function renderServices() {
 
   grid.querySelectorAll('.service-option').forEach(card => {
     const pick = () => {
-      ui.service = SERVICES.find(s => s.id === +card.dataset.id);
-      grid.querySelectorAll('.service-option').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
+      const serviceId = +card.dataset.id;
+      const service = SERVICES.find(s => s.id === serviceId);
+      const isSelected = ui.services.some(s => s.id === serviceId);
+      
+      if (isSelected) {
+        // Deseleccionar
+        ui.services = ui.services.filter(s => s.id !== serviceId);
+        card.classList.remove('selected');
+      } else {
+        // Seleccionar
+        ui.services.push(service);
+        card.classList.add('selected');
+      }
       clearError();
     };
     card.addEventListener('click', pick);
@@ -397,10 +407,41 @@ function renderTimeSlots() {
     weekday: 'long', day: 'numeric', month: 'long'
   });
 
-  // Slots ocupados por citas
-  const horasConCita = citasBackend
+  // Calcular duración de la cita actual (suma de servicios seleccionados)
+  const duracionCitaMinutos = ui.services.reduce((sum, s) => {
+    const match = s.duration.match(/(\d+)/);
+    return sum + (match ? parseInt(match[1]) : 0);
+  }, 0);
+
+  // Slots ocupados por citas existentes
+  // Usa horaInicio y horaFin del backend para calcular exactamente qué horas están ocupadas
+  const horasConCita = new Set();
+  citasBackend
     .filter(cita => cita.fecha.split('T')[0] === selectedDateIso)
-    .map(cita => cita.horaInicio.substring(0, 5));
+    .forEach(cita => {
+      const horaInicio = cita.horaInicio.substring(0, 5);
+      const horaFin = cita.horaFin.substring(0, 5);
+      
+      // Parsear horas
+      const [hhI, mmI] = horaInicio.split(':').map(Number);
+      const [hhF, mmF] = horaFin.split(':').map(Number);
+      
+      // Convertir a minutos desde las 00:00
+      const minI = hhI * 60 + mmI;
+      const minF = hhF * 60 + mmF;
+      
+      // Duración en minutos
+      const duracion = minF - minI;
+      const horasQueBloques = Math.ceil(duracion / 60);
+      
+      // Bloquear todas las horas que ocupa esta cita
+      for (let i = 0; i < horasQueBloques; i++) {
+        const hora = hhI + i;
+        if (hora < 24) {
+          horasConCita.add(String(hora).padStart(2, '0') + ':' + String(mmI).padStart(2, '0'));
+        }
+      }
+    });
 
   // Slots bloqueados por admin
   // Nota: DateOnly serializa como "YYYY-MM-DD" y TimeOnly como "HH:mm:ss" — sin partes de fecha/hora adicionales
@@ -418,6 +459,18 @@ function renderTimeSlots() {
 
   // Combinar ambos
   const todasLasHorasOcupadas = new Set([...horasConCita, ...horasBloqueadas]);
+
+  // Si el usuario YA ha seleccionado una hora y tiene servicios, bloquear las horas posteriores
+  if (ui.time && duracionCitaMinutos > 0) {
+    const [hh, mm] = ui.time.split(':').map(Number);
+    const horasQueBloques = Math.ceil(duracionCitaMinutos / 60);
+    for (let i = 1; i < horasQueBloques; i++) {
+      const hora = hh + i;
+      if (hora < 24) {
+        todasLasHorasOcupadas.add(String(hora).padStart(2, '0') + ':' + String(mm).padStart(2, '0'));
+      }
+    }
+  }
 
   pane.innerHTML = `
     <p class="time-pane__date" style="text-transform:capitalize">${dateStr}</p>
@@ -437,6 +490,7 @@ function renderTimeSlots() {
       ui.time = slot.dataset.time;
       document.querySelectorAll('#timeSlotsGrid .time-slot').forEach(s => s.classList.remove('selected'));
       slot.classList.add('selected');
+      renderTimeSlots(); // Re-render para mostrar slots bloqueados por la duración
       clearError();
     };
     slot.addEventListener('click', pick);
@@ -453,20 +507,41 @@ function renderSummary() {
   const dateStr = ui.date.toLocaleDateString('es-MX', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
+  
+  // Calcular totales
+  const totalPrice = ui.services.reduce((sum, s) => sum + s.price, 0);
+  const totalDuration = ui.services.reduce((sum, s) => {
+    const match = s.duration.match(/(\d+)/);
+    return sum + (match ? parseInt(match[1]) : 0);
+  }, 0);
+  
+  const servicesListHtml = ui.services.map(s => `
+    <div style="padding: 1rem 0; border-bottom: 1px solid #f0ede9; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <p style="font-weight: 600; color: #0a0a0a; margin-bottom: 0.35rem;">${s.name}</p>
+        <p style="font-size: 0.7rem; color: #6b6560; letter-spacing: 0.05em;">${s.duration}</p>
+      </div>
+      <p style="font-weight: 700; color: var(--color-accent); font-size: 1.1em; letter-spacing: 0.5px;">$${s.price.toLocaleString('es-MX')}</p>
+    </div>
+  `).join('');
+  
   el.innerHTML = `
     <div class="booking-summary__item">
-      <span class="booking-summary__key">Servicio</span>
-      <span class="booking-summary__val">${ui.service.name}</span>
+      <span class="booking-summary__key">Servicios seleccionados</span>
+      <div style="padding: 0.5rem 0;">
+        ${servicesListHtml}
+      </div>
     </div>
+    
     <div class="booking-summary__item">
-      <span class="booking-summary__key">Duración estimada</span>
-      <span class="booking-summary__val">${ui.service.duration}</span>
+      <span class="booking-summary__key">Duración estimada total</span>
+      <span class="booking-summary__val">${totalDuration} min</span>
     </div>
 
     <div class="booking-summary__item">
-      <span class="booking-summary__key">Costo estimado</span>
-      <span class="booking-summary__val" style="font-weight: bold; color: #d97070;">
-        $${ui.service.price} MXN
+      <span class="booking-summary__key">Costo estimado total</span>
+      <span class="booking-summary__val" style="font-weight: 700; color: var(--color-accent); font-size: 1.25em; letter-spacing: 0.5px;">
+        $${totalPrice.toLocaleString('es-MX')} MXN
       </span>
     </div>
 

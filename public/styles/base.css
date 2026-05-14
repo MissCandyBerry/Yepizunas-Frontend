@@ -92,29 +92,31 @@ ul {
 .top-bar__link {
   font-family: var(--font-body);
   font-size: 0.65rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-accent);
   transition: opacity var(--transition);
 }
 
-.top-bar__link:hover { opacity: 0.7; }
+.top-bar__link:hover { opacity: 0.85; }
 
 .top-bar__address {
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   color: var(--color-white);
   text-align: center;
-  opacity: 0.75;
+  opacity: 0.9;
+  font-weight: 500;
 }
 
 .top-bar__city {
   font-size: 0.65rem;
   letter-spacing: 0.12em;
-  color: var(--color-white);
+  color: var(--color-accent);
   text-align: right;
-  opacity: 0.75;
+  opacity: 1;
+  font-weight: 500;
 }
 
 /* ── Navigation ── */
@@ -189,27 +191,37 @@ ul {
 .nav__cta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.68rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
+  gap: 0.6rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-black);
-  border: 1px solid rgba(10,10,10,0.25);
-  padding: 0.55rem 1.25rem;
-  transition: border-color var(--transition), color var(--transition), background-color var(--transition);
+  color: var(--color-accent);
+  border: 1.5px solid var(--color-accent);
+  padding: 0.65rem 1.5rem;
+  border-radius: 6px;
+  transition: all var(--transition);
+  background-color: transparent;
+  cursor: pointer;
+  font-family: var(--font-body);
 }
 
 .nav__cta:hover {
-  border-color: var(--color-black);
-  background-color: var(--color-black);
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
   color: var(--color-white);
+  box-shadow: 0 4px 12px rgba(200, 169, 138, 0.25);
+  transform: translateY(-2px);
+}
+
+.nav__cta:active {
+  transform: translateY(0);
 }
 
 .nav__cta svg {
   width: 14px;
   height: 14px;
-  opacity: 0.65;
+  opacity: 1;
 }
 
 /* ── Hero ── */

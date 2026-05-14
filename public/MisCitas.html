@@ -99,15 +99,15 @@
     <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:1rem;text-align:left;">
       <div>
         <label for="editFecha" style="display:block;font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--color-muted);margin-bottom:.4rem;">Fecha</label>
-        <input type="date" id="editFecha" style="width:100%;padding:.7rem;border:1px solid #e8e4e0;font-family:inherit;font-size:.85rem;outline:none;" />
+        <input type="date" id="editFecha" class="citas-input" />
       </div>
       <div>
         <label for="editHora" style="display:block;font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--color-muted);margin-bottom:.4rem;">Hora inicio</label>
-        <input type="time" id="editHora" style="width:100%;padding:.7rem;border:1px solid #e8e4e0;font-family:inherit;font-size:.85rem;outline:none;" />
+        <input type="time" id="editHora" class="citas-input" />
       </div>
       <div>
         <label for="editServicios" style="display:block;font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--color-muted);margin-bottom:.4rem;">Servicios</label>
-        <select id="editServicios" multiple size="5" style="width:100%;padding:.5rem;border:1px solid #e8e4e0;font-family:inherit;font-size:.85rem;outline:none;"></select>
+        <select id="editServicios" class="citas-select" multiple size="5"></select>
         <p style="font-size:.62rem;color:var(--color-muted);margin-top:.35rem;">Mantén Ctrl (⌘ en Mac) para seleccionar varios.</p>
       </div>
       <p id="editError" style="color:#b45050;font-size:.75rem;min-height:1rem;"></p>

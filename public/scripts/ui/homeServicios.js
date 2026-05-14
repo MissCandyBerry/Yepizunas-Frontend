@@ -29,8 +29,8 @@ grid.innerHTML = lista.map((s, i) => `
           ? `<p class="service-card__desc">${escapeHtml(s.descripcion)}</p>`
           : ''}
         
-        <p class="service-card__price" style="font-weight: 600; margin-top: 0.8rem; font-size: 1.1rem;">
-          $${s.precioBase} MXN
+        <p class="service-card__price" style="font-weight: 600; margin-top: 0.8rem; font-size: 1.15rem; color: var(--color-accent); letter-spacing: 0.5px;">
+          $${s.precioBase.toLocaleString('es-MX')} MXN
         </p>
         
       </article>
