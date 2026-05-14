@@ -239,8 +239,11 @@ const handleRegister = debounce(async () => {
   setBtnLoading(registerBtn, true);
   try {
     await registrarUsuario(nombre, email, password);
-    toast('¡Registro exitoso! Ahora inicia sesión.');
-    openModal(panelLogin);
+    toast('¡Registro exitoso! Verifica tu correo para confirmar tu cuenta.');
+    sessionStorage.setItem('correoPendienteVerificacion', email);
+    setTimeout(() => {
+      window.location.href = 'verificarCorreo.html';
+    }, 1200);
   } catch (err) {
     mostrarError('panelRegister', err.message);
   } finally {
